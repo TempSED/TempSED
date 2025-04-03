@@ -1,0 +1,33 @@
+useDynLib(TempSED, .registration = TRUE)
+
+importFrom("ReacTran", "setup.grid.1D")
+importFrom("graphics", "image", "legend", "mtext", "par", "plot", "pairs", "lines")
+importFrom("grDevices", "dev.interactive", "devAskNewPage")
+importFrom("stats", "uniroot", "na.omit")
+importFrom("utils", "capture.output")
+import(deSolve, rootSolve, plot3D)
+import(methods)
+
+export(TempSED_run1D)
+export(TempSED_getparms, TempSED_get0Dvars, TempSED_get1Dvars) 
+export(TempSED_getdepth, TempSED_getdx, TempSED_getgrid)
+export(TempSED_getirr, TempSED_getpor, TempSED_getstates)
+
+export(trunc_function )
+export(flux_evaporation)
+export(flux_heat, flux_latent, flux_sensible, flux_backradiation) 
+export(air_properties, air_humidity, air_vapor, air_density)
+export(air_cp, air_td, air_tc)
+export(bulk_properties, bulk_density, bulk_cp, bulk_td, bulk_tc)
+export(mineral_properties, mineral_density, mineral_cp, mineral_td, mineral_tc)
+export(water_properties, water_density, water_cp, water_td, water_tc, water_lh)
+
+export(matplot1D)
+export(matplot0D)
+S3method("image2D", "TempSEDdyn")
+S3method(matplot0D, "default")
+S3method(matplot0D, "TempSEDdyn")
+S3method(matplot1D, "default")
+S3method(matplot1D, "TempSEDdyn")
+S3method("plot",    "TempSEDdyn")
+

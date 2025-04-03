@@ -1,0 +1,1222 @@
+---
+title: 'TempSED: modelling temperature in aquatic sediments'
+author: "Karline Soetaert, Lubos Polerecky, Qi Liu"
+date: "first version: 1-4-2021"
+output:
+  html_document:
+    df_print: paged
+    toc: true
+    number_sections: true
+    toc_float: true
+    code_folding: show
+    theme: cosmo
+abstract: "The R-package TempSED contains functions to model temperature variations in aquatic sediments."
+vignette: >
+   %\VignetteIndexEntry{TempSED: modelling temperature in aquatic sediments}
+   %\VignetteEngine{knitr::rmarkdown}  
+   %\VignetteEncoding{UTF-8}
+editor_options:
+  markdown:
+    wrap: sentence
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=TRUE, comment = NA)
+```
+
+```{r, message=FALSE, echo=FALSE}
+require(plot3D)
+require(TempSED)
+```
+
+```{r, echo=FALSE, comment=NA}
+Def_fun <- function(name){
+  Z <- paste(as.character(deparse(name)), collapse="\n")
+  Z <- substr(Z, 1, regexpr("{",Z,fixed =TRUE)-1)
+  for (i in 1:10)
+    Z <- gsub("  ", " ", Z)
+  cat(paste(substitute(name),substr(Z, 9, nchar(Z))),"\n")
+}
+```
+
+# the TempSED R-package
+
+The R-package *TempSED* contains functions and datasets to model temperature variations in aquatic sediments.
+
+## Functions 
+
+The function to run the temperature models, in one (vertical) dimension is:
+
+```{r, echo=FALSE}
+(TR <- ls("package:TempSED", pattern = "TempSED_run"))
+```
+
+The functions to obtain settings (0D, 1D, state variables, grid information, parameter settings), of the temperature models are:
+
+```{r, echo=FALSE,prompt=FALSE}
+(TG <- ls("package:TempSED", pattern = "TempSED_get"))
+```
+
+The functions to calculate properties of the air, or bulk sediment, or water are:
+
+```{r, echo=FALSE, prompt=FALSE}
+(TP <- ls("package:TempSED", pattern = "air_"))
+```
+
+```{r, echo=FALSE}
+(TB <- ls("package:TempSED", pattern = "bulk_"))
+```
+
+```{r, echo=FALSE}
+(TW <- ls("package:TempSED", pattern = "water_"))
+```
+
+The functions to calculate heat and water fluxes with the air:
+
+```{r, echo=FALSE}
+(TF <- ls("package:TempSED", pattern = "flux_"))
+```
+
+Other minor functions are:
+
+* *trunc_function* creates truncated sine functions,
+* *image2D*, *matplot0D*, *matplot1D*, *plot*: utility functions for plotting.
+
+## Data sets
+
+There are several data sets to model the temperature of the Oosterschelde (a marine bay in the Netherlands)
+
+* *ForcingOS* contains forcing function data to run the Oostereschelde sediment temperature model,
+* *DataOS* contains observed data, 
+* *InitTempOS* contains an initial temperature profile for the Oosterschelde temperature model.
+
+# Properties of the air
+
+## implementation in R
+
+Function *air_properties* calculates:
+
+* the air humidity ($kg~water(kg~air)^{-1}$), 
+* the air density ($kg~m^{-3}$) and
+* the vapor pressure ($Pa$) of the air.
+
+It is defined as:
+
+```{r, echo=FALSE, comment=NA}
+Def_fun(air_properties)
+attributes(air_properties())$parameters
+```
+
+The function returns a list that has a description of the output and the parameter settings in its attributes:
+
+```{r}
+knitr::kable(air_properties())
+attributes(air_properties())$description
+```
+
+It can be called with a vector of input values. In this case, the parameter attribute will contain the mean of the inputs.
+
+```{r}
+AP <- air_properties(T_air=10:12)
+knitr::kable(AP)
+```
+
+## Dependencies on external conditions
+
+The dependency of the air properties on varying air temperature, humidity and atmospheric pressure are estimated:
+
+```{r}
+T.seq   <- seq(0, 30,            length.out = 100)
+Q.seq   <- seq(0,  1,            length.out = 100)
+P.seq   <- seq(101325, 101325*2, length.out = 100)
+
+Dtq <- outer(X   = T.seq, 
+             Y   = Q.seq, 
+             FUN = function(Ta, Q) 
+               air_properties(T_air = Ta, Qrel = Q)$density)
+Dtp <- outer(X   = T.seq, 
+             Y   = P.seq, 
+             FUN = function(Ta, P) 
+               air_properties(T_air = Ta, P = P)$density)
+Vtq <- outer(X   = T.seq, 
+             Y   = Q.seq, 
+             FUN = function(Ta, Q) 
+               air_properties(T_air = Ta, Qrel = Q)$vapor)
+Vtp <- outer(X   = T.seq, 
+             Y   = P.seq, 
+             FUN = function(Ta, P) 
+               air_properties(T_air = Ta, P = P)$vapor)
+Htq <- outer(X   = T.seq, 
+             Y   = Q.seq, 
+             FUN = function(Ta, Q) 
+               air_properties(T_air = Ta, Qrel = Q)$humidity)
+Htp <- outer(X   = T.seq, 
+             Y   = P.seq, 
+             FUN = function(Ta, P) 
+               air_properties(T_air = Ta, P = P)$humidity)
+``` 
+
+```{r, fig.width=8, fig.height=6}
+par(mfrow=c(2,3), las=1, oma=c(0,0,2,0))
+image2D(z = Dtq, x = T.seq, y = Q.seq, 
+        contour = TRUE, 
+        main = "density", xlab = "T_air, dgC", 
+        ylab = "Qrel, -", clab = "kg/m3")
+image2D(z = Vtq, x = T.seq, y = Q.seq, 
+        contour=TRUE, 
+        main = "vapor pressure", xlab = "T_air, dgC",  
+        ylab = "Qrel, -", clab = "Pa")
+image2D(z = Htq, x = T.seq, y = Q.seq, 
+        contour=TRUE, 
+        main = "humidity", xlab = "T_air, dgC", 
+        ylab = "Qrel, -", clab = "kg/kg")
+image2D(z = Dtp, x = T.seq, y = P.seq/1000, 
+        contour=TRUE, 
+        main = "density", xlab = "T_air, dgC", 
+        ylab = "P, KPa", clab = "kg/m3")
+image2D(z = Vtp, x = T.seq, y = P.seq/1000, 
+        contour=TRUE, 
+        main = "vapor pressure", xlab = "T_air, dgC", 
+        ylab = "P, KPa", clab = "Pa")
+image2D(z = Htp, x = T.seq, y = P.seq/1000, 
+        contour = TRUE, 
+        main = "humidity", xlab = "T_air, dgC", 
+        ylab = "P, KPa", clab = "kg/kg")
+mtext(outer = TRUE, side = 3, "air properties", cex = 1.5)
+```
+
+## Reference comparisons
+
+We compare the output of the function *air_properties* with a set of reference values, for which the following sources were used:
+
+* dry Air density (kg/m3): http://www.engineerstudent.co.uk/density_of_air.php
+* saturated Pressure (Pa): from https://en.wikipedia.org/wiki/Vapour_pressure_of_water
+* saturated humidity (kgWater/kgAir): from https://www.engineeringtoolbox.com/humidity-ratio-air-d_686.html
+
+
+```{r, echo=FALSE}
+airDry.ref   <- data.frame(
+ temp    = seq(from = 35, to = -25, by = -5),
+ density =c(1.1455, 1.1644, 1.1839, 1.2041, 1.225, 1.2466, 1.269, 1.2922,
+            1.3163, 1.3413, 1.3673, 1.3943, 1.4224))
+```
+
+```{r, purl=FALSE}
+airSat.ref <- data.frame(
+ temp  = seq(from = 0, to = 30, by = 5), 
+ vapor = c(0.003767, 0.005387, 0.007612, 0.01062, 
+           0.014659, 0.019826, 0.027125), #kg/kg
+ P     = c(0.6113, 0.8726, 1.2281, 1.7056, 
+           2.3388, 3.1690, 4.2455)*1000) # Pa
+```
+
+The air properties are estimated for a sequence of temperatures, and for air that is 
+saturated with water (*Qrel=1*) or that is dry (*Qrel=0*).
+
+```{r, fig.width=8, fig.height=4}
+T.seq   <- 0:30
+
+Air.sat <- data.frame(temp = T.seq, 
+                      air_properties(T_air = T.seq, Qrel = 1))
+
+Air.dry <- data.frame(temp = T.seq, 
+                      air_properties(T_air = T.seq, Qrel = 0))
+```
+
+```{r, fig.width=8, fig.height=4}
+par(mfrow=c(1,3), las=1)
+
+plot(T.seq, Air.sat$vapor, 
+     type = "l", main = "Saturated vapor pressure", 
+     xlab = "Air temperature", ylab = "Pa")
+points(airSat.ref$temp, airSat.ref$P)
+
+plot(T.seq, Air.sat$humidity, 
+     type = "l", main = "Saturated humidity", 
+     xlab = "Air temperature", ylab = "kg/kg")
+points(airSat.ref$temp, airSat.ref$vapor)
+
+plot(T.seq, Air.dry$density, 
+     type = "l", main = "Dry air density", 
+     xlab = "Air temperature", ylab = "kg/m3")
+points(airDry.ref$temp, airDry.ref$density)
+```
+
+# Properties of the water
+
+## implementation in R
+
+Function *water_properties* calculates:
+
+* the density of the water ($kg~m^{-3}$), 
+* the specific heat capacity of the water ($J~kg^{-1}~^oK^{-1}$) and
+* the thermal diffusivity of the water ($m^2 s^{-1}$) .
+
+It is defined as:
+
+```{r, echo=FALSE, comment=NA}
+Def_fun(water_properties)
+attributes(water_properties())$parameters
+```
+
+The function returns a list that has a description of the output and the parameter settings in its attributes:
+
+```{r}
+water_properties()
+attributes(water_properties())[c("description", "parameters")]
+```
+
+It can be called with a vector of input values. In this case, the parameter attribute will contain the mean of the inputs.
+
+```{r}
+WP <- water_properties(T_water = 10:12)
+WP
+attributes(WP)$description
+attributes(WP)$parameters
+```
+
+## Dependencies on external conditions
+
+The dependency of the water properties on varying water temperature, salinity and atmospheric pressure are estimated:
+
+```{r}
+T.seq   <- seq(from = 0,      to = 30,       length.out = 100)
+S.seq   <- seq(from = 0,      to = 40,       length.out = 101)
+P.seq   <- seq(from = 101325, to = 101325*2, length.out = 100)
+
+Dtq <- sapply(X   = S.seq, 
+              FUN = function(S) 
+                    water_properties(T_water = T.seq, S = S)$density)
+
+Dtp  <- sapply(X   = P.seq, 
+               FUN = function(P) 
+                     water_properties(T_water = T.seq, P = P)$density)
+
+CPtq <- sapply(X   = S.seq, 
+               FUN = function(S) 
+                     water_properties(T_water = T.seq, S = S)$cp_water)
+
+CPtp <- sapply(X   = P.seq, 
+               FUN = function(P) 
+                     water_properties(T_water = T.seq, P = P)$cp_water)
+
+TDtq <- sapply(X   = S.seq, 
+               FUN = function(S) 
+                     water_properties(T_water = T.seq, S = S)$td_water)
+
+TDtp <- sapply(X   = P.seq, 
+               FUN = function(P) 
+                     water_properties(T_water = T.seq, P = P)$td_water)
+```
+
+```{r, fig.width=8, fig.height=6}
+par(mfrow=c(2,3), las=1, oma=c(0,0,2,0))
+image2D(z = Dtq,  x = T.seq, y = S.seq, 
+        contour = TRUE, 
+        main = "density", xlab = "T_water, dgC", 
+        ylab = "S, -", clab = "kg/m3")
+image2D(z = CPtq, x = T.seq, y = S.seq, 
+        contour = TRUE, 
+        main = "specific heat capacity", xlab = "T_water, dgC", 
+        ylab = "S -", clab = "J/kg/dg")
+image2D(z = TDtq, x = T.seq, y = S.seq, 
+        contour = TRUE, 
+        main = "thermal diffusivity", xlab = "T_water, dgC", 
+        ylab = "S, -", clab = "m2/s")
+image2D(z = Dtp,  x = T.seq, y = P.seq/1000, 
+        contour = TRUE, 
+        main = "density", xlab = "T_water, dgC", 
+        ylab = "P, KPa", clab = "kg/m3")
+image2D(z = CPtp, x = T.seq, y = P.seq/1000, 
+        contour = TRUE, 
+        main = "specific heat capacity", xlab = "T_water, dgC", 
+        ylab = "P, KPa", clab = "J/kg/dg")
+image2D(z = TDtp, x = T.seq, y = P.seq/1000, 
+        contour = TRUE, 
+        main = "thermal diffusivity", xlab = "T_water, dgC", 
+        ylab = "P, KPa", clab = "m2/s")
+mtext(outer = TRUE, side = 3, "water properties", cex = 1.5)
+```
+
+## Reference comparisons
+
+We compare the output of this function with a set of reference values, for which the following sources were used:
+Nayar et al., 2016
+
+```{r, echo=FALSE}
+cp.ref   <- data.frame(  # specific heat capacity, J/kg/dgC 
+ temp    = seq(0, 40, by=10),
+ sal_10 = c(4141.8, 4136.7, 4132.9, 4130.6, 4129.8),
+ sal_30 = c(4019.2, 4022.2, 4024.9, 4027.5, 4030.3))
+
+tc.ref   <- data.frame(  # thermal conductivity, W/kg/dgC
+ temp    = seq(0, 40, by=10),
+ sal_10 = c(0.571, 0.588, 0.603, 0.617, 0.629),
+ sal_30 = c(0.570, 0.587, 0.602, 0.616, 0.628))
+
+td.ref   <- data.frame(  # thermal diffusivity, m2/s
+ temp    = seq(0, 40, by=10),
+ sal_10 = c(1.37e-07, 1.41e-07, 1.45e-07, 1.49e-07, 1.52e-07),
+ sal_30 = c(1.38e-07, 1.43e-07, 1.46e-07, 1.50e-07, 1.54e-07))
+
+lh.ref   <- data.frame(  # latent heat of vaporisation, 
+ temp    = seq(0, 40, by=10),
+ sal_10 = c(2475.9, 2452.5, 2429.0, 2405.5, 2381.9)*1000,
+ sal_30 = c(2425.9, 2402.9, 2379.9, 2356.9, 2333.8)*1000)
+
+dens.ref   <- data.frame(
+ temp    = seq(0, 40, by=10),
+ sal_10 = c(1007.9, 1007.4, 1005.7, 1003.1,  999.7),
+ sal_30 = c(1024.0, 1023.0, 1021.1, 1018.2, 1014.6))
+```
+
+The water properties are estimated for a sequence of temperatures, and for several salinity values.
+
+```{r, fig.width=9, fig.height=7}
+T.seq <- 0:40
+S.seq <- seq(from = 0, to = 40, by = 10)
+
+par(mfrow=c(2,3), las=1)
+cpVals <- sapply(S.seq, FUN = function(s) 
+                              water_cp(S = s, T_water = T.seq))
+matplot(x = T.seq, y = cpVals, 
+        main = "specific heat capacity", 
+        xlab = "T, dgC", ylab = "J/kg/dgC", 
+        type = "l", lwd = 2, lty = 1)
+matpoints(x = cp.ref[,1], y = cp.ref[,-1], 
+          pch = 18, col = c(2, 4), cex = 2)
+
+tcVals <- sapply(S.seq, FUN = function(s) 
+                              water_tc(S = s, T_water = T.seq))
+matplot(x = T.seq, y = tcVals,
+        main = "thermal conductivity",  
+        xlab = "T, dgC", ylab = "W/m/dgC", 
+        type = "l", lwd = 2, lty = 1)
+matpoints(x = tc.ref[,1], y = tc.ref[,-1], 
+          pch = 18, col = c(2, 4), cex = 2)
+
+tdVals <- sapply(S.seq, FUN = function(s) 
+                              water_td(S = s, T_water = T.seq))
+matplot(x = T.seq, y = tdVals, 
+        main = "thermal diffusivity", 
+        xlab = "T, dgC", ylab = "m2/s", 
+        type = "l", lwd = 2, lty = 1)
+matpoints(x = td.ref[,1], y = td.ref[,-1], 
+          pch = 18, col = c(2, 4), cex = 2)
+
+lhVals <- sapply(S.seq, FUN = function(s) 
+                              water_lh(S = s, T_water = T.seq))
+matplot(x = T.seq, y = lhVals, 
+        main = "latent heat varporization", 
+        xlab = "T, dgC", ylab = "J/kg", 
+        type = "l", lwd = 2, lty = 1)
+matpoints(x=lh.ref[,1], y=lh.ref[,-1], 
+          pch=18, col=c(2,4), cex=2)
+
+ddVals <- sapply(S.seq, FUN = function(s) 
+                              water_density(S = s, T_water = T.seq))
+matplot(x = T.seq, y = ddVals, main = "density", 
+        xlab = "T, dgC", ylab = "kg/m3", 
+        type = "l", lwd = 2, lty = 1)
+matpoints(x = dens.ref[,1], y = dens.ref[,-1], 
+          pch = 18, col = c(2, 4), cex = 2)
+
+plot.new()
+legend("center", legend=S.seq, title="Salinity", col=1:5, lty=1, lwd=2)
+```
+
+# Properties of the bulk sediment
+
+Using mixture formulations, functions *bulkDensity*, *bulkCp*, and  *bulkTd* calculate the density, specific heat capacity and thermal diffusivity of the bulk sediment ($_{bs}$). For *bulkDensity* and *bulkCp*, a simple arithmetic mean is estimated, based on the properties of the water ($_w$), the solid phase ($_s$) (sediment grains) and porosity ($\phi$). For density:
+
+$$\rho_{bs} = \phi \cdot \rho_w + (1-\phi) \cdot \rho_s$$
+while for the specific heat capacity of the bulk sediment we have:
+
+$$cp_{bs} = \frac{\phi \cdot \rho_w \cdot cp_w + (1-\phi) \cdot \rho_s \cdot cp_s}{\phi \cdot \rho_w + (1-\phi) \cdot \rho_s}$$
+
+For thermal diffusivity ($\kappa$), the formula of Goto et al., 2017 is used:
+
+$$
+\kappa_{bs}=\frac{\beta^\phi}{1+(\beta-1)\cdot \phi} \cdot \kappa_w^\phi \kappa_s^{(1-\phi)}
+$$
+$$\beta=\frac{\rho_w \cdot cp_w}{\rho_s \cdot cp_s}$$
+The properties of the solid component can be estimated based on the fractional composition of each mineral, using the arithmetic mean for density and specific heat capacity, and the geometric mean for thermal diffusivity. 
+
+## implementation in R
+
+Functions *bulk_density*, *bulk_cp*, *bulk_td*  calculate the density, heat capacity and thermal diffusivity of the bulk sediment respectively, while  *bulk_properties* calculates all these properties at once. They are defined as:
+
+```{r, echo=FALSE, comment=NA}
+Def_fun(bulk_density)
+Def_fun(bulk_cp)
+Def_fun(bulk_td)
+Def_fun(bulk_properties)
+```
+where *density_water*, *density_solid* are the density, *cp_water*, *cp_solid* the specific heat capacity, *td_water*, *td_solid*, the thermal diffusivities of the water and solid component, and *porosity* is the volumetric porosity. 
+
+```{r}
+attributes(bulk_properties())$description
+```
+
+## Dependencies of bulk properties
+
+The dependency of the bulk properties on the sediment density are:
+
+```{r, fig.width=9, fig.height=4}
+por.seq       <- seq(from = 0.,   to =    1, by = 0.2)
+densSolid.seq <- seq(from = 2500, to = 2900, length.out = 50)
+
+BD <- sapply(por.seq, FUN = function(p) 
+                     bulk_density(porosity  = p, 
+                                 density_solid = densSolid.seq) )
+CP <- sapply(por.seq, FUN = function(p) 
+                     bulk_cp     (porosity  = p, 
+                                 density_solid = densSolid.seq) )
+TD <- sapply(por.seq, FUN = function(p) 
+                     bulk_td     (porosity  = p, 
+                                 density_solid = densSolid.seq) )
+
+par(mfrow=c(1, 3))
+matplot(densSolid.seq, y = BD, 
+        main = "bulk density",
+        xlab = "density solid fraction, kg/m3", 
+        ylab = "kg/m3", 
+        type = "l", lty = 1, las = 1, lwd = 2)
+matplot(densSolid.seq, y = CP, 
+        main = "bulk specific heat capacity",
+        xlab = "density solid fraction, kg/m3", 
+        ylab = "J/kg/dg", 
+        type = "l", lty = 1, las = 1, lwd = 2)
+matplot(densSolid.seq, y = TD, 
+        main = "bulk thermal diffusivity",
+        xlab = "density solid fraction, kg/m3", 
+        ylab = "m2/s", 
+        type = "l", lty = 1, las = 1, lwd = 2)
+legend("topleft", legend = por.seq, 
+       title = "porosity", col = 1:6, lty = 1, lwd = 2)
+```
+
+The bulk thermal diffusivity also depends slightly on the specific heat capacity:
+
+```{r, fig.width=6, fig.height=6}
+por.seq <- seq(from = 0, to = 1, length.out = 100)
+cp.seq  <- seq(from = 500, to = 800, length.out = 200)
+
+td.por  <- sapply(por.seq, FUN = function(x)
+                   bulk_td(porosity = x ,
+                          cp_solid  = cp.seq))
+par(mar = c(4, 4, 4, 4))
+image2D(x = cp.seq, y = por.seq, z = td.por, contour=TRUE,
+        las = 1, xlab = "cp, J/kg/dg", ylab = "porosity", 
+        main = "Thermal diffusivity", clab = "m2/s")
+```
+
+# Properties of the sediment minerals
+
+A simple function is available to estimate the thermal and physical properties of some common sedimentary minerals.
+
+```{r}
+Def_fun(mineral_properties)
+Def_fun(mineral_cp)
+Def_fun(mineral_tc)
+Def_fun(mineral_td)
+Def_fun(mineral_density)
+
+attributes(mineral_properties())$description
+```
+
+```{r}
+mineral_properties()
+```
+
+# Heat exchange fluxes
+
+## implementation in R
+
+Several functions estimate the heat fluxes; they are:
+
+* *flux_heat*: calculates the different contributions of the heat budget, and the total heat flux.
+* *flux_latent*: calculates the heat flux due to evaporation.
+* *flux_sensible*: calculates the heat flux due to conduction.
+* *flux_backradiation*: calculates the heat flux due to net longwave radation.
+
+These functions are defined as:
+
+```{r, echo=FALSE, comment=NA}
+Def_fun(flux_heat)
+Def_fun(flux_latent)
+Def_fun(flux_sensible)
+Def_fun(flux_backradiation)
+
+attributes(flux_heat())$parameters
+```
+
+where *NLR* refers to formulae for estimating the backradiation (or net longwave radiation).
+
+```{r}
+attributes(flux_heat())$description
+```
+
+## Heat fluxes as a function of temperature and humidity
+
+The sensitivity of the various fluxes as a function of air temperature, sediment temperature and air humidity is plotted:
+
+```{r, fig.width=8, fig.height=6}
+par(mfrow=c(2, 3), las=1)
+T.seq     <- 0:30
+Hsensible <- flux_sensible(T_air = T.seq)
+plot(T.seq, Hsensible, 
+     main = "Sensible heat exchange", 
+     xlab = "Air temperature", ylab = "W/m2", 
+     type = "l")
+
+Hlatent   <- flux_latent(T_air = T.seq)
+plot(T.seq, Hlatent, 
+     main = "Latent heat exchange", 
+     xlab = "Air temperature", ylab = "W/m2", 
+     type = "l")
+
+Q.seq   <- seq(0, 1, len=100)
+Hlatent <- flux_latent(Qrel = Q.seq)
+plot(Q.seq, Hlatent, 
+     main = "Latent heat exchange", 
+     xlab = "Relative Humidity", ylab = "W/m2", 
+     type="l")
+
+NLR1 <- flux_backradiation(T_air = T.seq, NLR = 1)
+NLR2 <- flux_backradiation(T_air = T.seq, NLR = 2)
+NLR3 <- flux_backradiation(T_air = T.seq, NLR = 3)
+NLR4 <- flux_backradiation(T_air = T.seq, NLR = 4)
+NLR5 <- flux_backradiation(T_air = T.seq, NLR = 5)
+matplot(T.seq, cbind(NLR1, NLR2, NLR3, NLR4, NLR5), 
+        type = "l", lty = 1, 
+        main = "NLR heat exchange", 
+        xlab = "Air temperature", ylab = "W/m2")
+
+NLR1 <- flux_backradiation(T_sed = T.seq, NLR = 1)
+NLR2 <- flux_backradiation(T_sed = T.seq, NLR = 2)
+NLR3 <- flux_backradiation(T_sed = T.seq, NLR = 3)
+NLR4 <- flux_backradiation(T_sed = T.seq, NLR = 4)
+NLR5 <- flux_backradiation(T_sed = T.seq, NLR = 5)
+matplot(T.seq, cbind(NLR1, NLR2, NLR3, NLR4, NLR5), 
+        main = "NLR heat exchange", 
+        xlab = "Sediment temperature", ylab = "W/m2",
+        type = "l", lty = 1)
+
+NLR1 <- flux_backradiation(Qrel = Q.seq, NLR = 1)
+NLR2 <- flux_backradiation(Qrel = Q.seq, NLR = 2)
+NLR3 <- flux_backradiation(Qrel = Q.seq, NLR = 3)
+NLR4 <- flux_backradiation(Qrel = Q.seq, NLR = 4)
+NLR5 <- flux_backradiation(Qrel = Q.seq, NLR = 5)
+
+matplot(Q.seq, cbind(NLR1, NLR2, NLR3, NLR4, NLR5), 
+        main = "NLR heat exchange", 
+        xlab = "Relative Humidity", ylab = "W/m2", 
+        type = "l", lty = 1)
+
+legend("bottomright", col = 1:5, lty = 1, 
+       legend= c("basic", "may86", "josey97", "bunker76", "bignami95"))
+```
+
+## Net longwave radiation fluxes as a function of temperature 
+
+The net longwave radiation fluxes are estimated for a combination of air (*T_air*) and sediment (water) temperatures (*T_sed*), using the various formulations and compared. 
+
+```{r, fig.width=8, fig.height=6}
+T_sed <- seq(from = 0, to=30, length.out=50)
+T_air <- seq(from = 0, to=30, length.out=50)
+
+NLR1 <- outer(X = T_sed, Y = T_air, 
+              FUN = function(X,Y) 
+                    flux_backradiation(T_air = X, T_sed = Y, NLR = 1))
+NLR2 <- outer(X = T_sed, Y = T_air, 
+              FUN = function(X,Y) 
+                    flux_backradiation(T_air = X, T_sed = Y, NLR = 2))
+NLR3 <- outer(X = T_sed, Y = T_air, 
+              FUN = function(X,Y) 
+                    flux_backradiation(T_air = X, T_sed = Y, NLR = 3))
+NLR4 <- outer(X=T_sed, Y=T_air, 
+              FUN = function(X,Y) 
+                    flux_backradiation(T_air = X, T_sed = Y, NLR = 4))
+NLR5 <- outer(X=T_sed, Y=T_air, 
+              FUN = function(X,Y) 
+                    flux_backradiation(T_air = X, T_sed = Y, NLR = 5))
+```
+
+```{r, fig.width=8, fig.height=6}
+par(mfrow=c(2,3))
+clim <- c(-320, 110)
+contour <- list(levels= c(0, -50,-100))
+
+image2D(x = T_sed, y = T_air, z = NLR1, 
+        xlab = "T_air", ylab = "T_sed", clim = clim, 
+        contour = contour, main = "Basic")
+image2D(x = T_sed, y = T_air, z = NLR2, 
+        xlab = "T_air", ylab = "T_sed", clim = clim, 
+        contour = contour, main = "May, 1986")
+image2D(x = T_sed, y = T_air, z = NLR3, 
+        xlab = "T_air", ylab = "T_sed", clim = clim, 
+        contour = contour, main = "Clark et al., 1974")
+image2D(x = T_sed, y = T_air, z = NLR4, 
+        xlab = "T_air", ylab = "T_sed", clim = clim, 
+        contour = contour, main = "Bunker, 1976")
+image2D(x = T_sed, y = T_air, z = NLR5, 
+        xlab = "T_air", ylab = "T_sed", clim = clim, 
+        contour = contour, main = "Bignami et al., 1995")
+
+NL <- as.data.frame(rbind(
+            data.frame(NLR = "Basic",   val = as.vector(NLR1)), 
+            data.frame(NLR = "May",     val = as.vector(NLR2)), 
+            data.frame(NLR = "Clark",   val = as.vector(NLR3)),
+            data.frame(NLR = "Bunker",  val = as.vector(NLR4)), 
+            data.frame(NLR = "Bignami", val = as.vector(NLR5))))
+
+par(las = 1, mar = c(4, 6, 2, 2))
+boxplot(NL$val~NL$NLR, horizontal = TRUE, las = 1, 
+        xlab = "value", ylab = "", main = "Backradiation")
+```
+
+## Net longwave radiation fluxes as a function of cloudiness and humidity
+
+The net longwave radiation fluxes are also estimated for a combination of cloudiness and relative humidity. 
+
+```{r, fig.width=8, fig.height=6}
+Qrel  <- seq(from=0, to=1,length.out=50)
+Cloud <- seq(from=0, to=1,length.out=50)
+
+NLR1 <- outer(X = Cloud, Y = Qrel, 
+              FUN = function(X, Y) 
+                    flux_backradiation(Cloud = X, Qrel = Y, NLR = 1))
+NLR2 <- outer(X = Cloud, Y = Qrel, 
+              FUN = function(X, Y) 
+                    flux_backradiation(Cloud = X, Qrel = Y, NLR = 2))
+NLR3 <- outer(X = Cloud, Y = Qrel, 
+              FUN = function(X, Y) 
+                    flux_backradiation(Cloud = X, Qrel = Y, NLR = 3))
+NLR4 <- outer(X = Cloud, Y = Qrel, 
+              FUN = function(X, Y) 
+                    flux_backradiation(Cloud = X, Qrel = Y, NLR = 4))
+NLR5 <- outer(X = Cloud, Y = Qrel, 
+              FUN = function(X,Y) 
+                    flux_backradiation(Cloud = X, Qrel = Y, NLR = 5))
+```
+
+```{r, fig.width=8, fig.height=6}
+par(mfrow = c(2,3), las = 1)
+zlim <- c(-150, -20)
+contour=list(levels = c(0, -50,-100))
+
+image2D(x = Cloud, y = Qrel, z = NLR1, 
+        xlab = "Cloudiness", ylab = "Humidity", 
+        contour = contour, main = "Basic", zlim = zlim)
+image2D(x = Cloud, y = Qrel, z = NLR2, 
+        xlab = "Cloudiness", ylab = "Humidity", 
+        contour = contour, main = "May, 1986", zlim = zlim)
+image2D(x = Cloud, y = Qrel, z = NLR3, 
+        xlab = "Cloudiness", ylab = "Humidity", 
+        contour = contour, main = "Clark et al., 1974", zlim = zlim)
+image2D(x = Cloud, y = Qrel, z = NLR4, 
+        xlab = "Cloudiness", ylab = "Humidity", 
+        contour = contour, main = "Bunker, 1976", zlim = zlim)
+image2D(x = Cloud, y = Qrel, z = NLR5, 
+        xlab = "Cloudiness", ylab = "Humidity", 
+        contour = contour, main = "Bignami et al. 1995", zlim = zlim)
+
+NL <- as.data.frame(rbind (
+            data.frame(NLR = "Basic",   val = as.vector(NLR1)), 
+            data.frame(NLR = "May",     val = as.vector(NLR2)), 
+            data.frame(NLR = "Clark",   val = as.vector(NLR3)),
+            data.frame(NLR = "Bunker",  val = as.vector(NLR4)), 
+            data.frame(NLR = "Bignami", val = as.vector(NLR5))))
+
+par(las = 1, mar = c(4, 6, 2, 2))
+boxplot(NL$val~NL$NLR, 
+        horizontal = TRUE, las = 1, 
+        xlab = "value", ylab = "", main = "Backradiation")
+```
+
+# Data sets
+
+```{r}
+# Forcing function data for the Oosterschelde
+attributes(ForcingOS)$description 
+head(ForcingOS, n = 3)
+
+# Temperature data for a station in the Oosterschelde
+head(DataOS, n = 3)
+
+# initial temperature profile
+head(InitTempOS, n = 3)  
+``` 
+
+# The mechanistic model of sediment temperature
+
+Function *TempSED_run1D* implements the one-dimensional mechanistic model for sediment temperature in the vertical dimension. 
+It is a numerical model, where the sediment is subdivided in 100 vertical boxes. 
+The model units are $m$, $s$, $^oC$. See appendix for the model equations. 
+
+The function  is defined as:
+
+```{r, echo=FALSE, comment=NA}
+Def_fun(TempSED_run1D)
+```
+
+where 
+
+* *z_max*, *dz_._1* are the total sediment depth and the size of the first box, in $m$, 
+* *porosity* is the sediment porosity,
+* *T_ini* is the initial condition; times represents the output times for the model,
+* *f_Waterheight*, *f_Watertemperature*, the overlying water conditions
+* *f_Airtemperature*, *f_Airhumidity*, *f_Pressure*, *f_Solarradiation*, *f_Windspeed*, *f_Cloudiness* are the atmospheric conditions,
+* *irrigation* is the sediment irrigation rate,
+* *sedpos*, if not NULL, is a vector with sediment depths whose temperature needs to be outputted.
+
+The forcings are either a time series, a function that takes an argument time, or one value. 
+
+the following parameters can be defined in *parms*:
+
+* *cp_water*, *cp_solid* in $J/kg/dg$,  *tc_water*, *tc_solid* in $W/m/dg$ and *dnes_water*, *dens_solid* in $kg/m3$, is the specific heat capacity (cp..), the thermal conductivity (tc..), and the density (dens..) for water and the solid fraction respectively.
+* *albedo_water*, *albedo_sediment*, *kd_water*, *kd_sediment* are the albedo (reflectance, $-$) and light extinction coefficient ($/m$) for water and sediment respectively,
+* *em_water*, *em_sediment*, are the emissivity of air and bulk sediment respectively,
+
+Arguments *porosity*, *irrigation* and *T_ini* can either be one value or a function that takes as an argument the sediment depth. *T_ini* can also be the output of a previous run, if the model needs to be restarted.
+
+## Model assumptions
+
+* The sediment has a homogeneous composition, and there is no distinction between heat transport in solid and liquid phase,
+* There is a distinction between flats being dry (exposed to air) and submerged (exposed to water): 
+     - when exposed to the air then sensible, latent, and backradiation fluxes are considered, together with absorption of solar radiation (shortwave radiation) in the sediment. 
+     - when submerged, there is exchange of heat with the overlying water by conduction, in addition to input from shortwave radiation in the sediment; the light arriviing at the  sediment-water interface depends on water height, due to light absorption in the overlying water. 
+
+Note: 
+
+* no backradiation within sediment? 
+* all absorbed shortwave light -> heat, ie no conversion into chemical energy 
+
+## Model application
+
+For all subsequent models, we impose very high resolution near the sediment-water interface (SWI). 
+We model up to 10 meter deep. Porosity is a declining function from 0.9 near the SWI till 0.7 at depth. 
+
+```{r}
+z_max    <- 10
+dz_1     <- 1e-4
+
+# function describing the variation of porosity (volume fraction of LIQUID) with depth
+porosity  <- function(x, por.SWI = 0.9, por.deep = 0.7, porcoef = 100)
+    return( por.deep + (por.SWI-por.deep)*exp(-x*porcoef) )
+```
+
+## Application 1: SEASONAL VARIATION - FLAT CONTINUOUSLY EXPOSED TO AIR
+
+For this run:
+
+* Air temperature varies seasonally from 0 to 30 $^oC$
+* Solar radiation varies from 30 to 270 $W/m2$; the daily average radiation is imposed
+* No variations within a day
+* Flats are always exposed to air
+
+Forcings for air temperature and solar radiation are inputted as a function.
+
+* temperature varies as a sine wave from 0 till 30 $^oC$
+* solar radiation varies from 30 till 270 $W/m2$.
+
+```{r}
+fAirTempYr  <- function(t) 
+               return(15   +  15*sin(2*pi*t/86400/365))  # dgC
+fSolarRadYr <- function(t) 
+               return(150  + 120*sin(2*pi*t/86400/365))  # W/m2
+```
+
+After a spinup of one year, the model is run for another year, generating output every day. 
+
+```{r}
+times <- seq(from = 0, to = 365*86400, by = 86400)
+
+ToutYr.ini <- TempSED_run1D(
+                        z_max            = z_max, 
+                        dz_1             = dz_1, 
+                        porosity         = porosity, 
+                        times            = times, 
+                        T_ini            = 10, 
+                        f_Airtemperature = fAirTempYr, 
+                        f_Solarradiation = fSolarRadYr)
+
+ToutYr     <- TempSED_run1D(
+                        z_max            = z_max, 
+                        dz_1             = dz_1, 
+                        porosity         = porosity, 
+                        times            = times, 
+                        T_ini            = ToutYr.ini, 
+                        f_Airtemperature = fAirTempYr, 
+                        f_Solarradiation = fSolarRadYr)
+```
+
+### Plot results
+
+```{r, fig.width=6, fig.height=6, warning=FALSE}
+par(mfrow = c(2, 2), las = 1, oma = c(0,0,2,0))
+
+T_air <- subset(ToutYr, which="Airtemperature")
+lines2D(x = times/86400, y = T_air,
+        main = "air temperature", 
+        colvar = T_air, type = "l", lwd = 2)
+
+Rad <- subset(ToutYr, which = "Solarradiation")
+lines2D(x = times/86400, y = Rad,
+        main = "Radiation", 
+        colvar = Rad, type = "l", lwd = 2)
+
+image2D(ToutYr, main = "Temperature", xlab = "days",
+      clab = "dgC", ylab = "m", time_unit = "day",
+      contour = TRUE, mfrow = NULL)
+
+matplot1D(ToutYr, 
+          subset = seq(1, nrow(ToutYr), by = 15),
+          mfrow = NULL, 
+          main = "Temperature profile", 
+          xlab = "temperature", ylab = "m",
+          type = "l", lwd = 1, lty = 1, col = "grey")
+mtext(outer = TRUE, side = 3, "Seasonal variation")
+```
+
+```{r, fig.width=6,fig.height=8}
+par(mfrow = c(2, 1))
+matplot0D(ToutYr, time_unit = "day",
+          which = c("Heatflux_latent", "Heatflux_sensible",
+              "Heatflux_backrad", "RadiationSWI", "Heatflux_total"),
+          main = "Fluxes", xlab = "day", ylab = "W/m2", 
+          lty = 1, lwd = 2)
+
+matplot0D(ToutYr, time_unit = "day",
+           which = c("Tsed_mean","Airtemperature"), 
+           main = "Temperature", xlab = "day", ylab = "dg", 
+           lty = 1, lwd = 2)
+mtext(outer = TRUE, side = 3, "Seasonal variation-exposed to air")
+```
+
+## Application 2: SEASONAL VARIATION - SUBMERGED SEDIMENT
+
+* Water temperature varies seasonally from 2 to 18 $^oC$
+* Flats always submerged
+
+Forcing functions for water temperature 
+
+```{r, purl=FALSE}
+fWaterTempYr  <- function(t) return(10 + 8*sin(2*pi*t/86400/365))
+```
+
+```{r}
+times <- seq(from=0, to = 365*86400, by = 86400)
+
+ToutYr2.ini <- TempSED_run1D(
+                         z_max              = z_max, 
+                         dz_1               = dz_1, 
+                         porosity           = porosity, 
+                         times              = times, 
+                         T_ini              = 10, 
+                         f_Watertemperature = fWaterTempYr, 
+                         f_Waterheight      = 1,
+                         f_Solarradiation   = fSolarRadYr)
+
+ToutYr2     <- TempSED_run1D(
+                         z_max              = z_max, 
+                         dz_1               = dz_1, 
+                         porosity           = porosity, 
+                         times              = times, 
+                         T_ini              = ToutYr2.ini, 
+                         f_Watertemperature = fWaterTempYr, 
+                         f_Waterheight      = 1,
+                         f_Solarradiation   = fSolarRadYr)
+
+```
+
+### Plot results
+
+```{r, fig.width=6,fig.height=6, warnings=FALSE}
+par(mfrow = c(2, 2), las = 1, oma = c(0,0,2,0))
+
+Twat <- subset(ToutYr2, which = "Watertemperature")
+lines2D(x = times/86400, y = Twat, colvar = Twat,
+        main = "Water temperature", 
+        type = "l", lwd = 2)
+
+Rad <- subset(ToutYr2, which = "Solarradiation")
+lines2D(x = times/86400, y = Rad, colvar = Rad,
+        main = "Radiation", 
+        type = "l", lwd = 2)
+
+image2D(ToutYr2, time_unit = "day",
+        main = "Temperature", xlab = "days",
+        clab = "dgC", ylab = "m", 
+        contour = TRUE, mfrow = NULL)
+
+matplot1D(ToutYr2,  
+           subset = seq(1, nrow(ToutYr2), by = 15), 
+           mfrow = NULL,  
+           main = "Temperature profile", 
+           xlab = "temperature", ylab = "m",
+           type = "l", lwd = 1, lty = 1, col="grey")
+mtext(outer = TRUE, side = 3, "Seasonal variation-submerged")
+```
+
+
+```{r, fig.width=6,fig.height=10}
+par(mfrow = c(2,1))
+matplot0D(ToutYr2, time_unit = "day",
+           which = c("Heatflux_convection", "Heatflux_backrad",
+                     "RadiationSWI", "Heatflux_total"), 
+           main = "Fluxes", ylab = "W/m2", xlab = "day",
+           lty = 1, lwd = 2)
+
+matplot0D(ToutYr2, time_unit = "day",
+           which = c("Tsed_mean", "Watertemperature"), 
+           main = "Temperature", ylab = "dg", xlab = "day",
+           lty = 1, lwd = 2)
+mtext(outer = TRUE, side = 3, "Seasonal variation-submerged")
+```
+
+
+## Application 3: The Oosterschelde data
+
+* Water temperature, water height, meteoroligical conditions: data series.
+* Observed data at 3 water depths
+
+Forcing functions for water temperature 
+
+```{r}
+head(ForcingOS)
+head(DataOS)
+``` 
+
+The parameter "nap" was derived by manually tuning the model to the data. 
+ 
+The porosity was measured and varies from 0.54 near the surface to 0.3 at depth .
+
+The albedo of the sediment was set rather high (0.3) - default = 0.2.
+
+```{r}
+nap   <- 0.5   # [m] position of the sampling above NAP
+
+WaterHeight <- data.frame(Time   = ForcingOS$Time, 
+                          height = pmax(0, ForcingOS$Waterheight + nap)) 
+
+# porosity function (varies from 0.49 to 0.54)
+por_fun <- function(x)  # x = depth in m
+  0.49 + (0.54 - 0.49)*exp(-100*x)
+
+# initial temperature: a good profile was created, and used here with approx
+Tini_fun <- function(x) approx(InitTempOS, xout = x, rule = 2)$y
+
+times <- as.double(seq(from = min(ForcingOS$Time), 
+                       to   = max(ForcingOS$Time), 
+                       by   = 3600))
+
+OSout <- TempSED_run1D(
+           times              = times, 
+           T_ini              = Tini_fun, 
+           porosity           = por_fun, 
+           f_Waterheight      = WaterHeight, 
+           f_Watertemperature = ForcingOS[, c("Time", "Watertemperature")], 
+           f_Solarradiation   = ForcingOS[, c("Time", "Solarradiation")], 
+           f_Windspeed        = ForcingOS[, c("Time", "Windspeed")], 
+           f_Airtemperature   = ForcingOS[, c("Time", "Airtemperature")], 
+           f_Cloudiness       = ForcingOS[, c("Time", "Cloudiness")],
+           parms              = list(kd_water = 0.1, albedo_sediment = 0.3),
+           sedpos             = c(0.03, 0.06, 0.09))
+```
+
+```{r, fig.width=10, fig.height=12}
+Tdata <- data.frame(var   = paste("Tsed", DataOS$Depth_cm, sep="_0.0"),
+                    time  = as.numeric(DataOS$Time),
+                    value = DataOS$SedimentTemperature)
+plot(OSout, mfrow = c(3, 1), which = unique(Tdata$var),
+     obs = Tdata, obspar = list(pch = ".", col = "red", cex=2))
+```
+
+```{r, fig.width=10, fig.height=12,warning = FALSE, message = FALSE}
+image2D(OSout, time.origin = "1970-01-01", mfrow = NULL, las = 1)
+```
+```{r, fig.width=10, fig.height=12, warning = FALSE, message = FALSE}
+par(mfrow = c(4, 2), mar = c(4, 4, 3, 2), las = 1)
+OSday <- OSout
+OSday[,1] <- OSout[,1]/86400 - 18261
+
+xlim <- c("2020-02-01", "2020-03-01")
+image2D(OSout, xlim = as.POSIXct(xlim), 
+        ylim = c(1, 0), time.origin = "1970-01-01", 
+        xlab = "day", mfrow = NULL)
+plot(OSday, which = "Tsed_0.03", 
+     xlim = as.POSIXlt(xlim)$yday, 
+     xlab = "day", mfrow = NULL)
+
+xlim <- c("2020-05-01", "2020-06-01")
+image2D(OSout, xlim = as.POSIXct(xlim), 
+        ylim = c(1, 0), time.origin = "1970-01-01", 
+        xlab = "day", mfrow = NULL)
+plot(OSday, which = "Tsed_0.03", 
+     xlim = as.POSIXlt(xlim)$yday, 
+     xlab = "day", mfrow = NULL)
+
+xlim <- c("2020-08-01", "2020-09-01")
+image2D(OSout, xlim = as.POSIXct(xlim), 
+        ylim = c(1, 0), time.origin = "1970-01-01", 
+        xlab = "day", mfrow = NULL)
+plot(OSday, which = "Tsed_0.03", 
+     xlim = as.POSIXlt(xlim)$yday, 
+     xlab = "day", mfrow = NULL)
+
+xlim <- c("2020-11-01", "2020-12-01")
+image2D(OSout, xlim = as.POSIXct(xlim), 
+        ylim = c(1, 0), time.origin = "1970-01-01", 
+        xlab = "day", mfrow = NULL)
+plot(OSday, which = "Tsed_0.03", 
+     xlim = as.POSIXlt(xlim)$yday, 
+     xlab = "day", mfrow = NULL)
+```
+
+# References
+
+Bunker, A. F., 1976. Computations of surface energy flux and annual air-sea interaction cycles of the North Atlantic Ocean, Mon. Weather Rev., 104, 1122--1140.
+
+Bignami, F., S. Marullo, R. Santoleri, and M.E. Schiano, 1995. Longwave radiation budget in the Mediterranean Sea, J. Geophys. Res., 100(C2), 2501--2514.
+
+Clark, N.E., L. Eber, R.M. Laurs, J.A. Renner, and J.F.T. Saur, 1974. Heat exchange between ocean and atmosphere in the eastern North Pacific for 1961-71, NOAA Tech. Rep. NMFS SSRF-682, U.S. Dep. of Commer., Washington, D. C., 1974.
+
+Josey, S.A., D. Oakley, and R.W. Pascal, 1997. On estimating the atmospheric longwave flux at the ocean surface from ship meteorological reports. J. Geophys. Res., 102(C13),  27961--27972.
+
+Onken, R., H. Garbe, S. Schr\o:der, and M. Janik, 2010. A new instrument for sediment temperature measurements. J Mar Sci Technol 15:427–-433, DOI 10.1007/s00773-010-0096-8
+
+J.P. Rinehimer and J.T. Thomson, 2014. Observations and modeling of heat fluxes on tidal flats. J. Geophys. Res.: oceans, 119, 133-–146, doi:10.1002/2013JC009225
+
+T.-W. Kim,1 Yang-Ki Cho and E.P. Dever, 2007. An evaluation of the thermal properties and albedo of a macrotidal flat. J. Geophys. Res., 112 (C12009), doi:10.1029/2006JC004015.
+
+\newpage
+
+# Appendix
+
+The temperature equation, describing the temperature in the bulk sediment, $T_{bs}$, in 1D, is given by the diffusion-reaction equation:
+
+$$
+\frac{\partial T_{bs}}{\partial t} = \frac{1}{cp_{bs}\rho_{bs}}\frac{\partial }{\partial x}K_{bs} \frac{\partial T_{bs}}{\partial x}-\frac{1}{cp_{bs} \cdot \rho_{bs}}\frac{\partial I_x}{\partial x}
+$$
+where $K_{bs}$ is the thermal conductivity of the bulk ($W/m/dgC$), $cp_{bs}$ is the bulk specific heat capacity ($J/kg/dg$), and $\rho_{bs}$ is the bulk density ($kg/m3$).
+
+with boundary conditions
+
+$$
+\frac{\partial T_{bs}}{\partial x}|_{x=\infty} = 0,
+$$
+at the lower boundary, and 
+$$
+K _{bs} \cdot \frac{\partial T_{bs}}{\partial x}|_{x=0} =  H_0,
+$$
+at the upper boundary, when exposed to the air,  or
+$$
+T_{bs}|_{x=0}=T_{ow},
+$$
+When exposed to the water.
+
+Imposed settings
+
+| variable | description     | default value | units |
+| --| ------------------ | --------------------| ---|
+| $x$   | sediment depth                        |          | $m$        |
+| $T_a$ | air  temperature                      | 10       | $^o C$     |
+| $T_w$ | temperature of overlying water (d > 0)| 10       | $^o C$     |
+| $d$   | water depth                           | 0        | $m$        |
+| $I_a$ | incident solar radiation              | 100      | $W/m2$     | 
+| $U$   | wind speed                            | 1        | $m/s$      |
+| $P$   | air pressure                          | 101325   | $Pa$       |
+| $C$   | fractional cloud cover                | 0.5      | $-$        |
+| $Q_r$ | relative humidity of the air          | 0.3      | $-$        |
+
+Bulk formulations used
+
+| variable      | description              | formula | units |
+| --| ------------------ | --------------------| ---|
+| $T_{bs}$      | bulk temperature         | state variable | $^o C$ |
+| $K_{bs}$      | bulk thermal conductivity | $K_w^\phi\cdot K_s^{1-\phi}$ | $m^2 s^{-1}$| 
+| $\rho_{bs}$   | bulk density             | $\phi \rho_{w} + (1-\phi)rho_{s}$ | $kg m^{-3}$|
+| $cp_{bs}$     | bulk specific heat capacity | $\frac{\phi \rho_w cp_{w} + (1-\phi) \rho_s cp_{s}}{\rho_{bs}}$ | $J~kg^{-1}~{^o K}^{-1}$ |
+
+Heat formulations used
+
+| variable | description | formula | units |
+| --| ------------------ | --------------------| ---|
+| $I_x$  | shortwave radiation at depth $x$       | $I_{0} \cdot e^{-k_{bs} \cdot x}$                          | $W m^{-2}$ |
+| $I_{0}$ | shortwave radiation at $x=0$ -exposed | $I_a \cdot (1-\alpha_s)$ (exposed)                         | $W m^{-2}$ |
+|        | shortwave radiation at $x=0$ -submerged| $I_a \cdot (1-\alpha_w) \cdot (1-\alpha_s) \cdot e^{-k_w\cdot d}$  | $W m^{-2}$ |
+| $H_0$  | total heat input into the sediment     | $H_l + H_h + H_e - H_w$                                    | $W m^{-2}$ |
+| $H_l$  | net longwave radiation (backradiation) | see table                                                  | $W m^{-2}$ |
+| $H_h$  | sensible heat flux (~ conduction)      | $- \rho_a \cdot cp_a  \cdot C_h \cdot(U+1)\cdot (T_s-T_a)$ | $W m^{-2}$ |
+| $l_e$  | latent heat of evaporation             | $(2500.8-2.37 \cdot T_s)\cdot 1000)$                       | $J~kg^{-1}$ |
+| $E_e$  | Evaporation rate                       | $\phi \cdot \rho_a \cdot C_e \cdot (U+1)\cdot (Q^s_s-Q_a)$ | $kg~m^{-2}~s^{-1}$ | 
+| $H_e$  | latent heat flux (due to evaporation)  | $- E_e \cdot l_e$                                          | $W m^{-2}$ | 
+| $H_w$  | heat exchange with the overlying water | $\kappa _{bs} \cdot \frac{\partial T_s}{\partial x}|_{x=0}$| $W m^{-2}$ |
+
+Forcing functions
+
+| variable | description | formula | units |
+| --| ------------------ | --------------------| ---|
+| $TK_a$      | air temperature              | $T_a     +273.15$ | $^o K$|
+| $TK_{bs0}$  | surface sediment temperature | $T_{bs0} +273.15$ | $^o K$|
+| $cp_a$  | specific heat of moist air    | $1005 + 1.82*Q_r$ | $J~kg^{-1}~{^o K}^{-1}$ |
+| $Q^s_s$ | specific humidity of saturated air at sediment temperature $T_s$ | $\frac{mwr \cdot P^s_s}{P-(1-mwr) \cdot P^s_s}$| $kg~kg^{-1}$ |
+| $Q^s_a$ | specific humidity of saturated air at air temperature $T_a$ | $\frac{mwr \cdot P^s_a}{P-(1-mwr) P^s_a}$| $kg~kg^{-1}$ |
+| $Q_a$ | specific humidity of the air at air temperature $T_a$ | $Q^s_a \cdot Q_r$| $kg~kg^{-1}$ |
+| $P^s_s$ | saturated vapor pressure at sediment temperature $T_s$ | $P \cdot a_1^{5.02808}*10^{-a_2\cdot 7.90298} +a_4 \cdot 8.1328e^{-3} -a_5 \cdot 1.3816 e ^{-7}$| $Pa$ |
+| $P^s_a$ | saturated vapor pressure at air temperature $T_a$ | $P \cdot a_1^{5.02808}*10^{-a_2\cdot 7.90298} +a_4 \cdot 8.1328e^{-3} -a_5 \cdot 1.3816e^{-7}$| $Pa$ |
+| |       |$a_1 = 373.16/K_{s,a}~;\quad a_2 = a_1-1~;\quad a_3 = 1 - 1/a_1~;$| |
+| |       |$a_4 = 10^{-a_2 \cdot 3.49149}-1~;\quad a_5 = 10^ {a_3 \cdot 11.344} -1$||
+| $P_v$ | vapor pressure of air | $P^s_a \cdot Q_r$| $Pa$ |
+| $P_d$ |  pressure of dry air | $P - P_v$         | $Pa$ |
+| $\rho_{a}$ |  air density | $10\cdot \frac{P_d/R_d + P_v/R_v}{TK_a}$| $kg ~m^{-3}$ |
+
+Summary of formulate to estimate the net longwave heat flux $Q_l$:
+
+
+| Formula for $Q_l$           | parameters       |  reference  |
+| --------------------------- | ---------------- |-------|
+| | | |
+| $-\sigma \cdot (\epsilon_s TK_{bs0}^4 - \epsilon_a  TK_a^4)$|  | basic formula|
+| | | |
+| $-\epsilon_a \sigma [TK_a^4(x_1-x_2 \sqrt{P_v/10}] +$ | | |
+| $4\epsilon_a \sigma TK_a^3(TK_{bs0}-TK_a)]\cdot(x_3-x_4 C^n)$   | $x_1=0.4; x_2=0.05; x_3=1; x_4=0.8; n=3.4$ | May et al., 1986|
+| | | |
+|$-\epsilon_a \sigma [TK_a^4(x_1-x_2 \sqrt{P_v/10}]\cdot(x_3-x_4 C^n) +$ | | |
+| $4\epsilon_a \sigma TK_a^3(TK_{bs0}-TK_a)]$ | $x_1=0.39; x_2=0.05; x_3=1; x_4=0.8; n=2$| Clark et al., 1974 |
+| | | |
+|$-\epsilon_a \sigma [TK_a^4(x_1-x_2 \cdot P_v/10]\cdot(x_3-x_4 C^n) +$ | | |
+| $4\epsilon_a \sigma TK_a^3(TK_{bs0}-TK_a)]$ |$x_1=0.254; x_2=0.00495; x_3=1; x_4=0.75; n=1$|Bunker 1976|
+| | | |
+|$-\epsilon_w \sigma TK_{bs0}^4+\sigma \cdot TK_a^4\cdot(x_1+x_2 \cdot P_v/10)\cdot(1+x_4 C^n)$ |$x_1=0.653; x_2=0.00535; x_4=0.1762; n=2$ |Bignami et al 1995|
+
+| parameter | description | default | units |
+| -----| -------------- | ------| --------|
+| $cp_w$ | heat capacity of water         | 3994 | $J/kg/^oC$ |
+| $cp_s$ | heat capacity of pure sediment | 1000 | $J/kg/^oC$ |
+| $\phi$ | sediment porosity              | 0.5 $^*$     | - |
+| $k_w$    | thermal conductivity of water  | ?? | $W/m/^o K$ |
+| $k_s$    | thermal conductivity of sediment  | ?? | $W/m/^o K$ |
+| $\rho_w$ | water density                | 1024 | $kg/m3$ |
+  $\rho_s$ | sediment dry density         | 2500 | $kg/m3$ |
+| $k_{bs}$  | light extinction coefficient of bulk sediment |  1000 $^*$  | $/m$ |
+| $k_w$  | light extinction coefficient of water |  1 $^*$    | $/m$ |
+| $\alpha_s$ | the albedo of sediment| 0.15 $^*$ | -|
+| $\alpha_w$ | the albedo of water| 0.05 $^*$ | -|
+| $\epsilon_a$ | emissivity of the air |0.8| -|
+| $\epsilon_s$| emissivity of the sediment | 0.95 | -|
+| $\sigma$ | Stefan-Boltzmann constant | 5.67 $\times 10^{-8}$| W $m^{- 2}~ { K}^{-4}$|
+| $C_h$ | bulk transfer coefficient for conduction (stanton number) | 0.001 | -|
+| $C_e$ | bulk transfer coefficient for evaporation (dalton number)| 0.0014 | -|
+| $R_d$ | specific gas ct for dry air  |  287.05,    | $J/kg/K$  | 
+| $R_v$ |   specific gas ct for water vapour | 461.495 | $J/kg/K$ |  
+| $mwr$ |   mol weight water/mol weight dry air | 0.622 | $-$ |        
+
+# References
+
+Shusaku Goto, Makoto Yamano, Sumito Morita, Toshiya Kanamatsu, Akihiro Hachikubo, Satsuki Kataoka, Manabu Tanahashi, Ryo Matsumoto, 2017. Physical and thermal properties of mud-dominant sediment
+from the Joetsu Basin in the eastern margin of the Japan Sea. 
+Mar Geophys Res 38:393–407, DOI 10.1007/s11001-017-9302-y
+

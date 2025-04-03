@@ -1,0 +1,26 @@
+Package: TempSED
+Version: 0.0
+Title: Temperature modelling in aquatic sediments
+Author: Karline Soetaert <karline.soetaert@nioz.nl>,
+        Lubos Polerecky <L.Polerecky@uu.nl>,
+        Qi Liu <qi.liu@nioz.nl>
+Authors@R: c(
+    person(given = "Karline", family = "Soetaert", role = c("aut", "cre"),
+           email = "karline.soetaert@nioz.nl", 
+           comment = c(ORCID = "0000-0003-4603-7100")),
+    person(given = "Lubos", family = "Polerecky", role = "ctb",
+           email = "L.Polerecky@uu.nl",
+           comment = c(ORCID = "0000-0003-4425-585X")),
+    person(given = "Qi", family = "Liu", role = "ctb",
+           email = "qi.liu@nioz.nl")
+  )        
+Maintainer: Karline Soetaert <karline.soetaert@nioz.nl>
+Depends: R (>= 3.5.0), deSolve, rootSolve, plot3D
+Imports: ReacTran, methods
+Suggests: knitr, rmarkdown
+VignetteBuilder: knitr
+Description: Model describing temperature in aquatic sediments, including functions to calculate physical quantities.
+License: GPL (>=3.0)
+LazyData: yes
+NeedsCompilation: yes
+Packaged: 2025-02-24 10:25:55 UTC; karlines
