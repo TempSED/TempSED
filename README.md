@@ -1,151 +1,92 @@
 # TempSED
 
 <p align="center">
-  <img src="man/figures/RTMlogo.png" width="300">
+  <img src="man/figures/TempSEDlogo.png" width="300">
 </p>
 
-**RTM** is an R-package that explains the basics of Reaction-Transport Modelling in **R**. It is used as a teaching material in the following courses:
+**TempSED** is an R-package to model temperature variations in aquatic sediments.
 
-- Reactive Transport Modeling in the Hydrosphere, taught at Utrecht University
-- Environmental Modeling, taught at Ghent University
+It includes a one-dimensional mechanistic model to describe space-time variations in temperature in aquatic sediments that are exposed to the air or overlying water. 
 
-The package is created with the R-package *learnr*.
+It is designed to model temperature in sediments under variable atmospheric and water-column forcing, i.e. for intertidal (estuarine / marine) sediments. Its vertical resolution is very fine near the sediment-water interface and coarsening with depth. 
 
 ## Installation
 
-Before installing the *RTM* package, you need to first install the following R-packages and their dependencies:
+Before installing the *TempSED* package, you need to first install the following R-packages and their dependencies:
 
-* *deSolve*, *rootSolve*, *ReacTran* (required for creating reaction-transport models in R);
-* *learnr* (required for creating an interactive learning environment);
-* *devtools* (required for a seamless installation of the RTM package from this github repository). 
+* *deSolve*, *rootSolve*, *ReacTran* (required for solving the reaction-transport model in R);
+* *plot3D* (required for image plotting);
 
-Once the above packages have been installed, enter the following command in the R-console to install the *RTM* package:
+Once the above packages have been installed, enter the following command in the R-console to install the *TempSED* package:
 
 ```
-devtools::install_github("dynamic-R/RTM", depend=TRUE)
+devtools::install_github("dynamic-R/TempSED", depend=TRUE)
 ```
-Then, type ``require(RTM)`` in the R-console to load the package in R. 
+Then, type ``require(TempSED)`` in the R-console to load the package in R. 
 
 That's it! After this step, you should be able to use the package as described below.
 
-## What can you do with the RTM package?
+## What can you do with the TempSED package?
 
-### Start a Tutorial
+### Calculate sediment temperature
 
-It is assumed that you use *Rstudio* to work in R. If you have installed the *RTM* package while running *Rstudio*, **restart** *Rstudio* and the tutorial will show up in the tab "Tutorial" (top-right panel of *Rstudio*). Select a tutorial and start it.
-
-<p align="center">
-<img src="man/figures/Rstudio_tutorial.png">
-</p>
-
-To see the list of all tutorials, enter the following command in the R-console:
-
-```
-RTMtutorial("?")
-```
+Given (variable or constant) atmospheric conditions (air temperature, relative humidity, pressure, solar radiation, wind speed and cloudiness), and water height and temperature, function *TempSED_run1D* estimates the heat gain or losses between the air-sediment or water-sediment interface, and the propagation of heat across the sediment. Important parameters are emissivity of air and sediment, sediment porosity and specific heat capacity and thermal conductivity of water and solid.  
 
 To run a specific tutorial, for example the tutorial called "introduction", enter one of the following commands in the R-console:
 
 ```
-RTMtutorial("introduction")
-RTMtutorial(1)
+?TempSED_run1D
+example("TempSED_run1D")
 ```
 
-Every tutorial contains a short knowledge-clip (hosted on YouTube), a corresponding slide show (hosted on Google drive), and a list of questions that test your comprehension of the material covered in the knowledge-clip.
+### Calculate properties of air, water, sediment
 
-
-### Start an Exercise
-
-To see the list of all exercises, enter the following command in the R-console:
+Properties that relate to sediment temperature modelling can be calculated, i.e. density, specific heat capacity, thermal conductivity, and thermal diffusivity. 
+Other formulae estimate the vapor pressure and specific humidity of moist air. 
 
 ```
-RTMexercise("?")
+example("air_properties")
+example("water_properties")
+example("mineral_properties")
+example("bulk_properties")
 ```
 
-To view a specific exercise, for example the exercise called "conceptual", enter one of the following commands in the R-console:
+### Estimate heat fluxes between air and sediment
+
+Latent heat is the heat lost when the fluid evaporates.
+
+Sensible heat is the heat required to change the temperature without changing the phase.
+
+Backradiation is the amount of heat radiated from the atmosphere to the surface.
 
 ```
-RTMexercise("conceptual")
-RTMexercise(2)
+?flux_heat
+example("flux_heat")
 ```
 
-These commands will display the exercise in an HTML format by default. If you want to display the exercise in a PDF format, which is more pleasing to the eye, modify the command as follows:
+### Data set from the Oosterschelde
+
+A data set with actual measurements from an intertidal area in the Oosterschelde, together with the atmospheric conditions and water heights and temperature is provided
 
 ```
-RTMexercise("conceptual", output="PDF")
-RTMexercise(2, output="PDF")
+?DataOS
+example("DataOS")
 ```
-
-Note, however, that you will need to have a working installation of LaTeX on your computer to allow this latter feature.
-
-If you are new to R, it is recommended to first read the "introductionR" exercise. This is done by entering one of the following commands in the R-console:
-
-```
-RTMexercise("introductionR")
-RTMexercise(1)
-RTMexercise("introductionR", output="PDF")
-RTMexercise(1, output="PDF")
-```
-
-### View extra readers
-
-To see the list of extra readers, enter the following command in the R-console:
-
-```
-RTMreader("?")
-```
-
-To view a specific reader, for example the reader called "fitting", enter one of the following commands in the R-console:
-
-```
-RTMreader("fitting", output="PDF")
-RTMreader(4, output="PDF")
-```
-
-### View answers to exercises
-
-Each exercise comes with a possible answer. You will achieve the best learning outcomes if you solve each exercise *on your own*. Thus, checking the answers too early is *not* recommended. However, if you feel that you are stuck, or if you want to compare your solution to the one developed by us, our solutions are provided and you are welcome to view them. For example, to view the answer to the exercise "ozone", enter the following command in the R-console:
-
-```
-RTManswer("ozone", output="PDF")
-```
-
-### Use RTM templates 
-
-Creating reaction-transport models "from scratch" does not mean that you need to start from a clean sheet. The RTM package provides you with several template files that help you get started with creating 0D or 1D models. To view the available templates, enter the following command in the R-console:
-
-```
-RTMtemplate("?")
-```
-
-To use a specific template, choose one from the File menu: New File -> R Markdown -> From Template.
-
-### Generate a report template
-
-When creating a report, you can use template files as a guide. These files are generated by entering the following command in R-console:
-
-```
-RTMreport()
-```
-
-### More help
-
-As for any other R-package, you can get extra help by entering ``?RTM`` in the R console.
 
 ## Uninstall
 
-To uninstall the *RTM* package, locate it in the "Packages" tab in *Rstudio*, and click on the encircled "x" button ("Remove package") on the right margin.
+To uninstall the *TempSED* package, locate it in the "Packages" tab in *Rstudio*, and click on the encircled "x" button ("Remove package") on the right margin.
 
 To uninstall the package manually, type the following command in the R-console (the version of the library may differ, here we assume 4.1):
 
 * Windows users: 
   ```
-  remove.packages("RTM", lib="~/R/win-library/4.1")
+  remove.packages("TempSED", lib="~/R/win-library/4.1")
   ```
 * Linux users: 
   ```
-  remove.packages("RTM", lib="~/R/x86_64-pc-linux-gnu-library/4.1")
+  remove.packages("TempSED", lib="~/R/x86_64-pc-linux-gnu-library/4.1")
   ```
 
 ---
-Last updates: 2022-02-04, 2024-04-03
+Last updates: 2025-03-21
