@@ -13,7 +13,6 @@ description: >
    fine near the sediment-water interface and coarsening with depth. 
 ---
 
-
 # <img src="man/figures/TempSEDlogo.png" align="center" alt="TempSED"/>
 
 <center>
