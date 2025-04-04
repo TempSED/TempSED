@@ -1,7 +1,7 @@
 # TempSED
 
 <p align="center">
-  <img src="man/figures/TempSEDlogo.png" width="300">
+  <img src="man/figures/TempSEDlogo.png" width="300" alt="TempSED">
 </p>
 
 **TempSED** is an R-package to model temperature variations in aquatic sediments.
