@@ -22,3 +22,4 @@ VignetteBuilder: knitr
 Description: Model describing temperature in aquatic sediments, including functions to calculate physical quantities.
 License: GPL (>=3.0)
 LazyData: yes
+URL: https://TempSED.github.io/TempSED/

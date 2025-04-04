@@ -1,0 +1,117 @@
+url: https://TempSED.github.io/TempSED/
+
+home:
+  title: an R-package to model temperature variations in aquatic sediments.
+  description: >
+     TempSED is an R-package to model temperature variations in aquatic sediments. 
+     It includes a one-dimensional mechanistic model to describe space-time variations in temperature in aquatic sediments that are exposed to the air or overlying water. 
+     It is designed to model temperature in sediments under variable atmospheric and water-column forcing, i.e. for intertidal (estuarine / marine) sediments. Its vertical resolution is very fine near the sediment-water interface and coarsening with depth. 
+
+template:
+  bootstrap: 5
+  params:
+    bootswatch: flatly
+
+reference: 
+  - title: Run
+    desc: Function to run the TempSED model
+    contents: 
+    - '`TempSED_run1D`'    
+  - title: Model variables
+    desc: Functions to describe and get model variables
+    contents: 
+    - '`TempSED_getstates`'
+    - '`TempSED_get0Dvars`'
+    - '`TempSED_get1Dvars`'    
+  - title: Parameter settings
+    desc: Functions to get parameter and grid settings of the TempSED model
+    contents: 
+    - '`TempSED_getparms`'
+    - '`TempSED_getgrid`'
+    - '`TempSED_getdepth`'    
+    - '`TempSED_getdx`'    
+    - '`TempSED_getirr`'    
+    - '`TempSED_getpor`'    
+  - title: Heat fluxes
+    desc: Functions to estimate heat fluxes and evaporation
+    contents: 
+    - '`flux_backradiation`'
+    - '`flux_evaporation`'
+    - '`flux_heat`'    
+    - '`flux_latent`'    
+    - '`flux_sensible`'    
+  - title: Properties of the air
+    desc: Functions to estimate air properties required for temperature modeling
+    contents: 
+    - '`air_properties`'
+    - '`air_cp`'    
+    - '`air_density`'
+    - '`air_Pvapor`'    
+    - '`air_Qspec`'
+    - '`air_tc`'    
+    - '`air_td`'    
+  - title: Properties of the water
+    desc: Functions to estimate water properties required for temperature modeling
+    contents: 
+    - '`water_properties`'
+    - '`water_cp`'    
+    - '`water_density`'
+    - '`water_lh`'    
+    - '`water_tc`'    
+    - '`water_td`'    
+  - title: Properties of the major sediment-constituent minerals
+    desc: Functions to extract sediment mineral properties
+    contents: 
+    - '`mineral_properties`'
+    - '`mineral_cp`'    
+    - '`mineral_density`'
+    - '`mineral_tc`'    
+    - '`mineral_td`'    
+  - title: Properties of the bulk sediment
+    desc: Functions to estimate properties of the bulk sediment required for temperature modeling
+    contents: 
+    - '`bulk_properties`'
+    - '`bulk_cp`'    
+    - '`bulk_density`'
+    - '`bulk_tc`'    
+    - '`bulk_td`'    
+  - title: Data sets
+    desc: Dataset with forcing functions, observed temperature and initial conditions for modelling temperature in the Oosterschelde
+    contents: 
+    - '`ForcingOS`'
+    - '`DataOS`'
+    - '`InitTempOS`'
+  - title: Plotting
+    desc: Functions for plotting
+    contents: 
+    - '`matplot0D`'
+    - '`matplot1D`'
+    - '`image2D.TempSEDdyn`'    
+  - other: 
+    contents:
+    - "TempSED-package"
+    - "trunc_function"
+
+navbar:
+  type: inverse
+  left:
+    - text: "How To"
+      menu: 
+      -  text: Installation
+         href: articles/installation.html
+    - text: "Examples of use"
+      menu:
+      -  text: Description
+         href: articles/TempSED.html
+  right:
+    - icon: fa-file-code-o 
+      text: "functions"
+      href: reference/index.html
+    - icon: fa-github fa-lg
+      text: "github"
+      href: https://github.com/TempSED/  
+
+repo:
+  url:
+    home: https://github.com/TempSED/TempSED/  
+    source: https://github.com/TempSED/TempSED/
