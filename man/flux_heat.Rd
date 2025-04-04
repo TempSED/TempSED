@@ -5,10 +5,10 @@
 \alias{flux_backradiation}
 \alias{flux_evaporation}
 \title{
-  Heat fluxes between the air and sediment (positive = into sediment).
+  Heat fluxes between the air and sediment. Fluxes are positive when the heat transport is in the direction from air into sediment.
 }
 \description{
-  \code{flux_heat} calculates the different contributions of the heat budget and the total heat flux.
+  \code{flux_heat} calculates the total heat flux across the air-sediment interface and its different contributions (see below).
 
   \code{flux_latent} calculates the heat flux due to evaporation.
 
@@ -16,7 +16,7 @@
   
   \code{flux_sensible} calculates the heat flux due to conduction.
 
-  \code{flux_backradiation} calculates the heat flux due to net longwave radation.
+  \code{flux_backradiation} calculates the net heat flux due to net long-wave back-radation.
 }
 
  
@@ -41,19 +41,19 @@ flux_backradiation (T_air = 10, T_sed = 11, P = 101325,
              NLR = c("basic", "may86", "josey97", "bunker76", "bignami95"))
 }
 \arguments{
- \item{T_air}{ The temperature of the air, one number or a vector, units [dgC].
+ \item{T_air}{ The temperature of the air, one number or a vector, units [degC].
   }
- \item{T_sed}{ The temperature of the sediment near the surface, one number or a vector, units [dgC].
+ \item{T_sed}{ The temperature of the sediment near the surface, one number or a vector, units [degC].
   }
  \item{P}{ The air pressure, one number or a vector, units [Pa].
   }
- \item{Qrel}{ The relative air humidity, a fraction relative to saturated, one number or a vector, units [-]; values should be inbetween 0 and 1 (not checked).
+ \item{Qrel}{ The *relative* air humidity, ratio of the actual vapor pressure of water in the air to that in air saturated with water vapor, one number or a vector, units [-]; values should be inbetween 0 and 1 (not checked).
   }  
  \item{Wind}{  The velocity of the wind, estimated 10m above the surface, one number or a vector, units [m/s].
   }  
  \item{por0 }{ The volumetric water content (volume water/volume bulk) of sediment near the surface. One number or a vector, units [-].
   }
- \item{em_air, em_sed}{ Emissivity of Air (em_air) and  emissivity of Water/sediment; unitless, one value.
+ \item{em_air, em_sed}{ Emissivity of Air (em_air) and  emissivity of bulk sediment; unitless, one value.
  }
  \item{stanton, dalton}{ Transfer coeff for sensible heat (stanton) and for latent heat (dalton); unitless, one value.
  }
@@ -168,7 +168,7 @@ lH.W.seq <- flux_latent(Wind  = W.seq)
 par(mfrow = c(2,3), las = 1)
 
 plot(t.seq, sH.t.seq,     
-     xlab = "Temp, dgC", ylab = "W/m2", 
+     xlab = "Temp, degC", ylab = "W/m2", 
      main = "sensible heat flux")
 
 plot(Q.seq, sH.Q.seq, 
@@ -180,7 +180,7 @@ plot(W.seq, sH.W.seq,
      main = "sensible heat flux")
 
 plot(t.seq, lH.t.seq,     
-     xlab = "Temp, dgC", ylab = "W/m2", 
+     xlab = "Temp, degC", ylab = "W/m2", 
      main = "latent heat flux")
 
 plot(Q.seq, lH.Q.seq, 

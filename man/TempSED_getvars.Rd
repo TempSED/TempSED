@@ -67,13 +67,9 @@
 }
 
 \references{
-  Soetaert K, PMJ Herman and JJ Middelburg, 1996a.
+  Soetaert K, PMJ Herman and JJ Middelburg, 1996.
   A model of early diagenetic processes from the shelf to abyssal depths.
   Geochimica Cosmochimica Acta, 60(6):1019-1040.
-
-  Soetaert K, PMJ Herman and JJ Middelburg, 1996b.
-  Dynamic response of deep-sea sediments to seasonal variation: a model.
-  Limnol. Oceanogr. 41(8): 1651-1668.
 }
 
 \seealso{

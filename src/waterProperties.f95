@@ -21,12 +21,12 @@ SUBROUTINE calccpwater(nx, TC, S, cp)
  INTEGER, INTENT (IN) :: nx
 
  DOUBLE PRECISION, INTENT (IN) ::                                               &
-      TC(nx),      &    ! [dgC]     air temperature
+      TC(nx),      &    ! [degC]    air temperature
 !     P,           &    ! [Pa]      air pressure,
       S                 ! [-]       salinity
 
  DOUBLE PRECISION, INTENT(OUT) ::                                               &
-      cp(nx)            ! [J/kg/dg]    specific heat capacity of water
+      cp(nx)            ! [J/kg/K]    specific heat capacity of water
 
  DOUBLE PRECISION :: T68(nx), A, B, C, D, S2
 
@@ -62,7 +62,7 @@ SUBROUTINE calcrhowater(nx, TC, S, rho)
  INTEGER, INTENT (IN) :: nx
 
  DOUBLE PRECISION, INTENT (IN) ::                                               &
-      TC(nx),      &    ! [dgC]     air temperature
+      TC(nx),      &    ! [degC]    air temperature
 !     P,           &    ! [Pa]      air pressure,
       S                 ! [-]       salinity
 
@@ -107,16 +107,16 @@ SUBROUTINE calctdwater(nx, type, TC, S, P, cp, rho, td)
  INTEGER, INTENT (IN) :: nx
 
  DOUBLE PRECISION, INTENT (IN) ::                                               &
-      TC(nx),      &    ! [dgC]       air temperature
-      P,           &    ! [Pa]        air pressure, in mPa?????
-      S,           &    ! [-]         salinity
-      cp(nx),      &    ! [J/kg/dg]   specific heat capacity of water
-      rho(nx)           ! [kg/m3]     density of water
+      TC(nx),      &    ! [degC]     air temperature
+      P,           &    ! [Pa]       air pressure, in mPa?????
+      S,           &    ! [-]        salinity
+      cp(nx),      &    ! [J/kg/K]   specific heat capacity of water
+      rho(nx)           ! [kg/m3]    density of water
 
  INTEGER, INTENT (IN) :: type
  
  DOUBLE PRECISION, INTENT(OUT) ::                                               &
-      td(nx)            ! [m2/s]      thermal diffusivity
+      td(nx)            ! [m2/s]     thermal diffusivity
 
  DOUBLE PRECISION :: cond(nx)  
  
@@ -141,12 +141,12 @@ SUBROUTINE calctcwater(nx, type, TC, S, P, cond)
  INTEGER, INTENT (IN) :: type
  
  DOUBLE PRECISION, INTENT (IN) ::                                               &
-      TC(nx),      &    ! [dgC]     air temperature
+      TC(nx),      &    ! [degC]    air temperature
       P,           &    ! [Pa]      air pressure,
       S                 ! [-]       salinity
 
  DOUBLE PRECISION, INTENT(OUT) ::                                               &
-      cond(nx)          ! [W/m/dg]   conductivity of water
+      cond(nx)          ! [W/m/K]   conductivity of water
 
  DOUBLE PRECISION :: T68(nx), TK68(nx), A(nx), F(nx)
 
@@ -187,7 +187,7 @@ SUBROUTINE calclhwater(nx, TC, S, lh)
  INTEGER, INTENT (IN) :: nx
 
  DOUBLE PRECISION, INTENT (IN) ::                                               &
-      TC(nx),      &    ! [dgC]     air temperature
+      TC(nx),      &    ! [degC]    air temperature
 !     P,           &    ! [Pa]      air pressure,
       S                 ! [-]       salinity
 

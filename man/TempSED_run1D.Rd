@@ -12,14 +12,14 @@ TempSED_run1D (parms = list(), times = 1:3600, T_ini = 10,
                Grid = setup.grid.1D(N = 100, dx.1 = dz_1, L = z_max),
                porosity      = 0.5,   irrigation = 0, 
                f_Waterheight = 0,     f_Watertemperature = 10, 
-               f_Airtemperature = 10, f_Airhumidity = 0.3, 
+               f_Airtemperature = 10, f_Qrel = 0.3, 
                f_Pressure = 101325,   f_Solarradiation = 100, 
                f_Windspeed = 1,       f_Cloudiness = 0.5,
                dependency_on_T = FALSE, 
                sedpos = NULL, verbose = FALSE, dtmax = 3600)
 }
 \arguments{
-\item{parms}{ A list with parameter values. Available parameters can be listed using function TempSED_getparms. See details, and \link{TempSED_getparms}.
+\item{parms}{ A list with parameter values. Available parameters can be listed using function \code{TempSED_getparms}. See details, and \link{TempSED_getparms}.
 }
  \item{z_max}{ The total length of the vertical sediment column (z-axis), one number [m].
   }
@@ -29,7 +29,7 @@ TempSED_run1D (parms = list(), times = 1:3600, T_ini = 10,
   }
  \item{Grid}{ list with the specification of the one-dimensional grid; axis pointing downward. It should contain the following elements: \code{x.mid} with the positions in the middle of the grid cells (length 100); \code{x.int} with the positions at the grid interfaces (length 101); \code{dx} and \code{dx.aux} should contain the cell thickness (length 100), and the distance between the middle of the cells (length 101) respectively.
   }
- \item{T_ini}{ Initial temperature distribution (at start of the run), [dgC]. 
+ \item{T_ini}{ Initial temperature distribution (at start of the run), [degC]. 
  One number, a vector of length 100, a \code{function} that takes sediment depth as argument, or an object generated with \code{TempSED_run1D}. 
  In the latter case, the final temperature values in this object will be used as initial values.
   }
@@ -46,15 +46,15 @@ TempSED_run1D (parms = list(), times = 1:3600, T_ini = 10,
  Either one value, a \code{function} that takes time as argument, or a two-columned matrix with (time, value). 
  Note that in the latter case the time (first column) should embrace the output \code{times}. See details.
   }
- \item{f_Watertemperature}{ The temperature of the overlying water, [dgC]. 
+ \item{f_Watertemperature}{ The temperature of the overlying water, [degC]. 
  Either one value, a \code{function} that takes time as argument, or a two-columned matrix with (time, value). 
  Note that in the latter case the time (first column) should embrace the output \code{times}. See details.
   }
- \item{f_Airtemperature}{ The temperature of the air, [dgC]. 
+ \item{f_Airtemperature}{ The temperature of the air, [degC]. 
  Either one value, a \code{function} that takes time as argument, or a two-columned matrix with (time, value). 
  Note that in the latter case the time (first column) should embrace the output \code{times}. See details.
   }
- \item{f_Airhumidity}{ The humidity of the air, as a fraction of saturation [-], inbetween (0,1). 
+ \item{f_Qrel}{ The relative humidity of moist air, ratio of the actual vapor pressure of water in the air to that in air saturated with water vapor, inbetween (0,1). 
  Either one value, a \code{function} that takes time as argument, or a two-columned matrix with (time, value). 
  Note that in the latter case the time (first column) should embrace the output \code{times}. See details.
   }
@@ -101,15 +101,15 @@ TempSED_run1D (parms = list(), times = 1:3600, T_ini = 10,
 The **parameters** that can be specified with argument \code{parms} are:
 
 \itemize{
- \item \code{em_air, em_sediment} Emissivity of the air (em_air) and  emissivity of Water/sediment (em_sediment); unitless.
+ \item \code{em_air, em_sediment} Emissivity of the air (em_air) and  emissivity of bulk sediment (em_sediment); unitless.
  
  \item \code{stanton, dalton} Transfer coeff for sensible heat (stanton) and for latent heat (dalton); unitless.
  
  \item \code{density_water, density_solid} Water density (dens_water) and sediment dry density (dens_solid); [kg/m3].
  
- \item \code{cp_water, cp_solid} Specific heat capacity of the water (cp_water) and of solid sediment (cp_Solid) [J/kg/dgC].
+ \item \code{cp_water, cp_solid} Specific heat capacity of the water (cp_water) and of solid sediment (cp_Solid) [J/kg/K].
  
- \item \code{tc_water, tc_solid} The thermal conductivity of the water (tc_water) and of the solid sediment (tc_solid) [W/m/dg].
+ \item \code{tc_water, tc_solid} The thermal conductivity of the water (tc_water) and of the solid sediment (tc_solid) [W/m/K].
   
  \item \code{albedo_water, albedo_sediment} The part of the shortwave radiation refracted by the overlying water (albedo_water), or the sediment (albedo_sediment), one number, inbetween (0,1) [-].
   
@@ -130,7 +130,7 @@ The **parameters** that can be specified with argument \code{parms} are:
 ==========
 
   The **forcing functions** \code{f_Waterheight, f_Watertemperature, f_Airtemperature,
-  f_Airhumidity, f_Pressure, f_Solarradiation, f_Windspeed,  f_Cloudiness} can
+  f_Qrel, f_Pressure, f_Solarradiation, f_Windspeed,  f_Cloudiness} can
   be prescribed either as a constant, as a function, or as a data series.
 
   Forcing functions imposed by a \code{data series} should be a two-columned
@@ -165,7 +165,7 @@ TempSED_getparms()
 # Application 1: SEASONAL VARIATION - EXPOSED TO AIR
 #==========================================================
 
-# Forcing functions for air temperature (dgC) 
+# Forcing functions for air temperature (degC) 
 # and solar radiation (W/m2), yearly period
 
 fAirTempYr  <- function(t)                            
@@ -188,7 +188,6 @@ print(system.time(
 
 # 2. final run 
 # ----------------
-
 # request output at 1cm, 1dm, and 1m (sedpos).
 
 ToutYr  <- TempSED_run1D(
@@ -206,15 +205,22 @@ par(mfrow = c(2,2))            # arrangement of the figures
 image2D(ToutYr,                 mfrow = NULL)  # mfrow=NULL prevents mfrow to be reset
 image2D(ToutYr, ylim = c(4, 0), mfrow = NULL)  # zoom in 
 
-# temporal plots
+# temporal plot
 # ----------------
 
-plot      (ToutYr, 
-           which = "Heatflux_total",                             
-           mfrow = NULL)
 matplot0D(ToutYr, 
           which = c("Tsed_0.01", "Tsed_0.1", "Tsed_1"), 
           lty = 1, lwd = 2, mfrow = NULL)
+
+# selected vertical profiles
+# ----------------
+
+matplot1D(ToutYr, 
+          subset = times \%in\% (c(1, 100, 200, 300)*86400), 
+          col = 1:4,
+          lty = 1, lwd = 2, mfrow = NULL, las = 1)
+legend("bottomright", legend = c(1, 100, 200, 300), title = "day", 
+       lty = 1, col = 1:4)          
 
 #==========================================================
 # Application 2: SEASONAL VARIATION - SUBMERGED
@@ -241,24 +247,25 @@ image2D(ToutYr2)
 #==========================================================
 
 # tide forcing
-fTides     <- trunc_function(duration = 3*3600 ,    # time submerged, [s]
-                             period   = 12.4*3600,  # tidal period, [s]
-                             max      = 1)          # max water height, [m]
+fTides     <- trunc_function(t_period  = 12.4*3600,  # tidal period, [s]
+                             t_trunc   = 3*3600 ,    # time submerged, [s]
+                             v_maximum = 1)          # max water height, [m]
 
 # radiation forcing
 Rad0       <- 150    # [W/m2] dayly radiation
 DL         <- 12     # daylength - Hours
 
-fRad.day0  <- trunc_function(duration = DL*3600, 
-                             average  = Rad0)
+fRad.day0  <- trunc_function(t_period  = 24*3600,    # day period, [s]
+                             t_trunc   = DL*3600, 
+                             v_average  = Rad0)
 
 # air temperatureforcing
-Tmp0       <- 15     # dgC
+Tmp0       <- 15     # degC
 fTmp.day0  <- function(t) 
                   return(Tmp0  +1*cos(2*pi*t/86400))
 
 # water temperature forcing
-Twat0      <- 10     # dgC
+Twat0      <- 10     # degC
 fTwat.day0 <- function(t) 
                   return(Twat0 +1*cos(2*pi*t/86400))
 

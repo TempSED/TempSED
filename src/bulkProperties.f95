@@ -18,18 +18,18 @@ SUBROUTINE calcbulk(nx, densWater, densSolid, cpWater, cpSolid,                 
 ! chacteristics of water and solid substances
 
   DOUBLE PRECISION, INTENT (IN) ::                                              &
-         densWater(nx), densSolid,  &  ! [kg/m3]   density           
-         cpWater(nx),   cpSolid  ,  &  ! [J/kg/dg] specfic heat capacity     
-         tcWater(nx+1), tcSolid        ! [W/m/dg]  thermal conductivity 
+         densWater(nx), densSolid,  &  ! [kg/m3]  density           
+         cpWater(nx),   cpSolid  ,  &  ! [J/kg/K] specfic heat capacity     
+         tcWater(nx+1), tcSolid        ! [W/m/K]  thermal conductivity 
 
 ! porosity in center and interfaces of boxes
 
   DOUBLE PRECISION, INTENT (IN)  ::  por(nx), porint(nx+1)
   
   DOUBLE PRECISION, INTENT (OUT)::                                              &
-         densBulk(nx),          &  ! [kg/m3]   density of bulk sediment          
-         cpBulk(nx)  ,          &  ! [J/kg/dg] specific heat capacity of bulk    
-         tcBulk(nx+1)              ! [W/m/dg]  thermal conductivity of bulk sed.
+         densBulk(nx),          &  ! [kg/m3]  density of bulk sediment          
+         cpBulk(nx)  ,          &  ! [J/kg/K] specific heat capacity of bulk    
+         tcBulk(nx+1)              ! [W/m/K]  thermal conductivity of bulk sed.
 
   DOUBLE PRECISION :: Beta
 !..........................................................................
@@ -89,14 +89,14 @@ SUBROUTINE calcbulkcp(nx, densWater, densSolid, cpWater, cpSolid, por,          
 ! chacteristics of water and solid substances
 
   DOUBLE PRECISION, INTENT (IN) ::                                              &
-         densWater, densSolid,  &  ! [kg/m3]   density           
-         cpWater,   cpSolid        ! [J/kg/dg] specific heat capacity     
+         densWater, densSolid,  &  ! [kg/m3]  density           
+         cpWater,   cpSolid        ! [J/kg/K] specific heat capacity     
 
   DOUBLE PRECISION, INTENT (IN) ::                                              &
          por(nx)               ! [-] volumetric porosity 
   
   DOUBLE PRECISION, INTENT (OUT) ::                                             &
-         cpBulk(nx)            ! [J/kg/dg] specific heat capacity of bulk          
+         cpBulk(nx)            ! [J/kg/K] specific heat capacity of bulk          
 
 !..........................................................................
 ! Goto et al., 2017 eq 11
@@ -120,13 +120,13 @@ SUBROUTINE calcbulktc(nx, tcWater, tcSolid, porosity,                           
 ! chacteristics of water and solid substances
 
   DOUBLE PRECISION, INTENT (IN) ::                                              &
-         tcWater,   tcSolid        ! [W/m/dg]  thermal conductivity 
+         tcWater,   tcSolid        ! [W/m/K]  thermal conductivity 
 
 ! porosity in interfaces of boxes
 
   DOUBLE PRECISION, INTENT (IN)  ::  porosity(nx)
   DOUBLE PRECISION, INTENT (OUT)::                                              &
-         tcBulk(nx)                ! [W/m/dg]  thermal conductivity of bulk 
+         tcBulk(nx)                ! [W/m/K]  thermal conductivity of bulk 
 
 !..........................................................................
 
@@ -150,9 +150,9 @@ SUBROUTINE calcbulktd(nx, densWater, densSolid, cpWater, cpSolid,               
 ! chacteristics of water and solid substances
 
   DOUBLE PRECISION, INTENT (IN) ::                                              &
-         densWater, densSolid,  &  ! [kg/m3]   density           
-         cpWater,   cpSolid  ,  &  ! [J/kg/dg] specific heat capacity     
-         tdWater,   tdSolid        ! [m2/s]    thermal diffusion 
+         densWater, densSolid,  &  ! [kg/m3]  density           
+         cpWater,   cpSolid  ,  &  ! [J/kg/K] specific heat capacity     
+         tdWater,   tdSolid        ! [m2/s]   thermal diffusion 
 
 ! porosity in interfaces of boxes
 

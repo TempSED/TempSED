@@ -96,7 +96,7 @@ There are several data sets to model the temperature of the Oosterschelde (a mar
 
 Function *air_properties* calculates:
 
-* the air humidity ($kg~water(kg~air)^{-1}$), 
+* the specific air humidity ($kg~water(kg~air)^{-1}$), 
 * the air density ($kg~m^{-3}$) and
 * the vapor pressure ($Pa$) of the air.
 
@@ -141,46 +141,46 @@ Dtp <- outer(X   = T.seq,
 Vtq <- outer(X   = T.seq, 
              Y   = Q.seq, 
              FUN = function(Ta, Q) 
-               air_properties(T_air = Ta, Qrel = Q)$vapor)
+               air_properties(T_air = Ta, Qrel = Q)$Pvapor)
 Vtp <- outer(X   = T.seq, 
              Y   = P.seq, 
              FUN = function(Ta, P) 
-               air_properties(T_air = Ta, P = P)$vapor)
+               air_properties(T_air = Ta, P = P)$Pvapor)
 Htq <- outer(X   = T.seq, 
              Y   = Q.seq, 
              FUN = function(Ta, Q) 
-               air_properties(T_air = Ta, Qrel = Q)$humidity)
+               air_properties(T_air = Ta, Qrel = Q)$Qspec)
 Htp <- outer(X   = T.seq, 
              Y   = P.seq, 
              FUN = function(Ta, P) 
-               air_properties(T_air = Ta, P = P)$humidity)
+               air_properties(T_air = Ta, P = P)$Qspec)
 ``` 
 
 ```{r, fig.width=8, fig.height=6}
 par(mfrow=c(2,3), las=1, oma=c(0,0,2,0))
 image2D(z = Dtq, x = T.seq, y = Q.seq, 
         contour = TRUE, 
-        main = "density", xlab = "T_air, dgC", 
+        main = "density", xlab = "T_air, degC", 
         ylab = "Qrel, -", clab = "kg/m3")
 image2D(z = Vtq, x = T.seq, y = Q.seq, 
         contour=TRUE, 
-        main = "vapor pressure", xlab = "T_air, dgC",  
+        main = "vapor pressure", xlab = "T_air, degC",  
         ylab = "Qrel, -", clab = "Pa")
 image2D(z = Htq, x = T.seq, y = Q.seq, 
         contour=TRUE, 
-        main = "humidity", xlab = "T_air, dgC", 
+        main = "specific air humidity", xlab = "T_air, degC", 
         ylab = "Qrel, -", clab = "kg/kg")
 image2D(z = Dtp, x = T.seq, y = P.seq/1000, 
         contour=TRUE, 
-        main = "density", xlab = "T_air, dgC", 
+        main = "density", xlab = "T_air, degC", 
         ylab = "P, KPa", clab = "kg/m3")
 image2D(z = Vtp, x = T.seq, y = P.seq/1000, 
         contour=TRUE, 
-        main = "vapor pressure", xlab = "T_air, dgC", 
+        main = "vapor pressure", xlab = "T_air, degC", 
         ylab = "P, KPa", clab = "Pa")
 image2D(z = Htp, x = T.seq, y = P.seq/1000, 
         contour = TRUE, 
-        main = "humidity", xlab = "T_air, dgC", 
+        main = "specific air humidity", xlab = "T_air, degC", 
         ylab = "P, KPa", clab = "kg/kg")
 mtext(outer = TRUE, side = 3, "air properties", cex = 1.5)
 ```
@@ -191,7 +191,7 @@ We compare the output of the function *air_properties* with a set of reference v
 
 * dry Air density (kg/m3): http://www.engineerstudent.co.uk/density_of_air.php
 * saturated Pressure (Pa): from https://en.wikipedia.org/wiki/Vapour_pressure_of_water
-* saturated humidity (kgWater/kgAir): from https://www.engineeringtoolbox.com/humidity-ratio-air-d_686.html
+* saturated specific humidity (kgWater/kgAir): from https://www.engineeringtoolbox.com/humidity-ratio-air-d_686.html
 
 
 ```{r, echo=FALSE}
@@ -226,15 +226,15 @@ Air.dry <- data.frame(temp = T.seq,
 ```{r, fig.width=8, fig.height=4}
 par(mfrow=c(1,3), las=1)
 
-plot(T.seq, Air.sat$vapor, 
+plot(T.seq, Air.sat$Pvapor, 
      type = "l", main = "Saturated vapor pressure", 
      xlab = "Air temperature", ylab = "Pa")
 points(airSat.ref$temp, airSat.ref$P)
 
-plot(T.seq, Air.sat$humidity, 
+plot(T.seq, Air.sat$Qspec, 
      type = "l", main = "Saturated humidity", 
      xlab = "Air temperature", ylab = "kg/kg")
-points(airSat.ref$temp, airSat.ref$vapor)
+points(airSat.ref$temp, airSat.ref$Pvapor)
 
 plot(T.seq, Air.dry$density, 
      type = "l", main = "Dry air density", 
@@ -313,27 +313,27 @@ TDtp <- sapply(X   = P.seq,
 par(mfrow=c(2,3), las=1, oma=c(0,0,2,0))
 image2D(z = Dtq,  x = T.seq, y = S.seq, 
         contour = TRUE, 
-        main = "density", xlab = "T_water, dgC", 
+        main = "density", xlab = "T_water, degC", 
         ylab = "S, -", clab = "kg/m3")
 image2D(z = CPtq, x = T.seq, y = S.seq, 
         contour = TRUE, 
-        main = "specific heat capacity", xlab = "T_water, dgC", 
-        ylab = "S -", clab = "J/kg/dg")
+        main = "specific heat capacity", xlab = "T_water, degC", 
+        ylab = "S -", clab = "J/kg/K")
 image2D(z = TDtq, x = T.seq, y = S.seq, 
         contour = TRUE, 
-        main = "thermal diffusivity", xlab = "T_water, dgC", 
+        main = "thermal diffusivity", xlab = "T_water, degC", 
         ylab = "S, -", clab = "m2/s")
 image2D(z = Dtp,  x = T.seq, y = P.seq/1000, 
         contour = TRUE, 
-        main = "density", xlab = "T_water, dgC", 
+        main = "density", xlab = "T_water, degC", 
         ylab = "P, KPa", clab = "kg/m3")
 image2D(z = CPtp, x = T.seq, y = P.seq/1000, 
         contour = TRUE, 
-        main = "specific heat capacity", xlab = "T_water, dgC", 
-        ylab = "P, KPa", clab = "J/kg/dg")
+        main = "specific heat capacity", xlab = "T_water, degC", 
+        ylab = "P, KPa", clab = "J/kg/K")
 image2D(z = TDtp, x = T.seq, y = P.seq/1000, 
         contour = TRUE, 
-        main = "thermal diffusivity", xlab = "T_water, dgC", 
+        main = "thermal diffusivity", xlab = "T_water, degC", 
         ylab = "P, KPa", clab = "m2/s")
 mtext(outer = TRUE, side = 3, "water properties", cex = 1.5)
 ```
@@ -344,12 +344,12 @@ We compare the output of this function with a set of reference values, for which
 Nayar et al., 2016
 
 ```{r, echo=FALSE}
-cp.ref   <- data.frame(  # specific heat capacity, J/kg/dgC 
+cp.ref   <- data.frame(  # specific heat capacity, J/m/K 
  temp    = seq(0, 40, by=10),
  sal_10 = c(4141.8, 4136.7, 4132.9, 4130.6, 4129.8),
  sal_30 = c(4019.2, 4022.2, 4024.9, 4027.5, 4030.3))
 
-tc.ref   <- data.frame(  # thermal conductivity, W/kg/dgC
+tc.ref   <- data.frame(  # thermal conductivity, W/kg/K
  temp    = seq(0, 40, by=10),
  sal_10 = c(0.571, 0.588, 0.603, 0.617, 0.629),
  sal_30 = c(0.570, 0.587, 0.602, 0.616, 0.628))
@@ -381,7 +381,7 @@ cpVals <- sapply(S.seq, FUN = function(s)
                               water_cp(S = s, T_water = T.seq))
 matplot(x = T.seq, y = cpVals, 
         main = "specific heat capacity", 
-        xlab = "T, dgC", ylab = "J/kg/dgC", 
+        xlab = "T, degC", ylab = "J/kg/K", 
         type = "l", lwd = 2, lty = 1)
 matpoints(x = cp.ref[,1], y = cp.ref[,-1], 
           pch = 18, col = c(2, 4), cex = 2)
@@ -390,7 +390,7 @@ tcVals <- sapply(S.seq, FUN = function(s)
                               water_tc(S = s, T_water = T.seq))
 matplot(x = T.seq, y = tcVals,
         main = "thermal conductivity",  
-        xlab = "T, dgC", ylab = "W/m/dgC", 
+        xlab = "T, degC", ylab = "W/m/K", 
         type = "l", lwd = 2, lty = 1)
 matpoints(x = tc.ref[,1], y = tc.ref[,-1], 
           pch = 18, col = c(2, 4), cex = 2)
@@ -399,7 +399,7 @@ tdVals <- sapply(S.seq, FUN = function(s)
                               water_td(S = s, T_water = T.seq))
 matplot(x = T.seq, y = tdVals, 
         main = "thermal diffusivity", 
-        xlab = "T, dgC", ylab = "m2/s", 
+        xlab = "T, degC", ylab = "m2/s", 
         type = "l", lwd = 2, lty = 1)
 matpoints(x = td.ref[,1], y = td.ref[,-1], 
           pch = 18, col = c(2, 4), cex = 2)
@@ -408,7 +408,7 @@ lhVals <- sapply(S.seq, FUN = function(s)
                               water_lh(S = s, T_water = T.seq))
 matplot(x = T.seq, y = lhVals, 
         main = "latent heat varporization", 
-        xlab = "T, dgC", ylab = "J/kg", 
+        xlab = "T, degC", ylab = "J/kg", 
         type = "l", lwd = 2, lty = 1)
 matpoints(x=lh.ref[,1], y=lh.ref[,-1], 
           pch=18, col=c(2,4), cex=2)
@@ -416,7 +416,7 @@ matpoints(x=lh.ref[,1], y=lh.ref[,-1],
 ddVals <- sapply(S.seq, FUN = function(s) 
                               water_density(S = s, T_water = T.seq))
 matplot(x = T.seq, y = ddVals, main = "density", 
-        xlab = "T, dgC", ylab = "kg/m3", 
+        xlab = "T, degC", ylab = "kg/m3", 
         type = "l", lwd = 2, lty = 1)
 matpoints(x = dens.ref[,1], y = dens.ref[,-1], 
           pch = 18, col = c(2, 4), cex = 2)
@@ -485,7 +485,7 @@ matplot(densSolid.seq, y = BD,
 matplot(densSolid.seq, y = CP, 
         main = "bulk specific heat capacity",
         xlab = "density solid fraction, kg/m3", 
-        ylab = "J/kg/dg", 
+        ylab = "J/kg/K", 
         type = "l", lty = 1, las = 1, lwd = 2)
 matplot(densSolid.seq, y = TD, 
         main = "bulk thermal diffusivity",
@@ -507,7 +507,7 @@ td.por  <- sapply(por.seq, FUN = function(x)
                           cp_solid  = cp.seq))
 par(mar = c(4, 4, 4, 4))
 image2D(x = cp.seq, y = por.seq, z = td.por, contour=TRUE,
-        las = 1, xlab = "cp, J/kg/dg", ylab = "porosity", 
+        las = 1, xlab = "cp, J/kg/K", ylab = "porosity", 
         main = "Thermal diffusivity", clab = "m2/s")
 ```
 
@@ -707,19 +707,19 @@ zlim <- c(-150, -20)
 contour=list(levels = c(0, -50,-100))
 
 image2D(x = Cloud, y = Qrel, z = NLR1, 
-        xlab = "Cloudiness", ylab = "Humidity", 
+        xlab = "Cloudiness", ylab = "Relative humidity", 
         contour = contour, main = "Basic", zlim = zlim)
 image2D(x = Cloud, y = Qrel, z = NLR2, 
-        xlab = "Cloudiness", ylab = "Humidity", 
+        xlab = "Cloudiness", ylab = "Relative humidity", 
         contour = contour, main = "May, 1986", zlim = zlim)
 image2D(x = Cloud, y = Qrel, z = NLR3, 
-        xlab = "Cloudiness", ylab = "Humidity", 
+        xlab = "Cloudiness", ylab = "Relative humidity", 
         contour = contour, main = "Clark et al., 1974", zlim = zlim)
 image2D(x = Cloud, y = Qrel, z = NLR4, 
-        xlab = "Cloudiness", ylab = "Humidity", 
+        xlab = "Cloudiness", ylab = "Relative humidity", 
         contour = contour, main = "Bunker, 1976", zlim = zlim)
 image2D(x = Cloud, y = Qrel, z = NLR5, 
-        xlab = "Cloudiness", ylab = "Humidity", 
+        xlab = "Cloudiness", ylab = "Relative humidity", 
         contour = contour, main = "Bignami et al. 1995", zlim = zlim)
 
 NL <- as.data.frame(rbind (
@@ -767,7 +767,7 @@ where
 * *porosity* is the sediment porosity,
 * *T_ini* is the initial condition; times represents the output times for the model,
 * *f_Waterheight*, *f_Watertemperature*, the overlying water conditions
-* *f_Airtemperature*, *f_Airhumidity*, *f_Pressure*, *f_Solarradiation*, *f_Windspeed*, *f_Cloudiness* are the atmospheric conditions,
+* *f_Airtemperature*, *f_Qrel*, *f_Pressure*, *f_Solarradiation*, *f_Windspeed*, *f_Cloudiness* are the atmospheric conditions,
 * *irrigation* is the sediment irrigation rate,
 * *sedpos*, if not NULL, is a vector with sediment depths whose temperature needs to be outputted.
 
@@ -775,9 +775,9 @@ The forcings are either a time series, a function that takes an argument time, o
 
 the following parameters can be defined in *parms*:
 
-* *cp_water*, *cp_solid* in $J/kg/dg$,  *tc_water*, *tc_solid* in $W/m/dg$ and *dnes_water*, *dens_solid* in $kg/m3$, is the specific heat capacity (cp..), the thermal conductivity (tc..), and the density (dens..) for water and the solid fraction respectively.
+* *cp_water*, *cp_solid* in $J/kg/K$,  *tc_water*, *tc_solid* in $W/m/K$ and *density_water*, *density_solid* in $kg/m3$, is the specific heat capacity (cp..), the thermal conductivity (tc..), and the density (dens..) for water and the solid fraction respectively.
 * *albedo_water*, *albedo_sediment*, *kd_water*, *kd_sediment* are the albedo (reflectance, $-$) and light extinction coefficient ($/m$) for water and sediment respectively,
-* *em_water*, *em_sediment*, are the emissivity of air and bulk sediment respectively,
+* *em_air*, *em_sediment*, are the emissivity of air and bulk sediment respectively,
 
 Arguments *porosity*, *irrigation* and *T_ini* can either be one value or a function that takes as an argument the sediment depth. *T_ini* can also be the output of a previous run, if the model needs to be restarted.
 
@@ -823,7 +823,7 @@ Forcings for air temperature and solar radiation are inputted as a function.
 
 ```{r}
 fAirTempYr  <- function(t) 
-               return(15   +  15*sin(2*pi*t/86400/365))  # dgC
+               return(15   +  15*sin(2*pi*t/86400/365))  # degC
 fSolarRadYr <- function(t) 
                return(150  + 120*sin(2*pi*t/86400/365))  # W/m2
 ```
@@ -868,7 +868,7 @@ lines2D(x = times/86400, y = Rad,
         colvar = Rad, type = "l", lwd = 2)
 
 image2D(ToutYr, main = "Temperature", xlab = "days",
-      clab = "dgC", ylab = "m", time_unit = "day",
+      clab = "degC", ylab = "m", time_unit = "day",
       contour = TRUE, mfrow = NULL)
 
 matplot1D(ToutYr, 
@@ -890,7 +890,7 @@ matplot0D(ToutYr, time_unit = "day",
 
 matplot0D(ToutYr, time_unit = "day",
            which = c("Tsed_mean","Airtemperature"), 
-           main = "Temperature", xlab = "day", ylab = "dg", 
+           main = "Temperature", xlab = "day", ylab = "degC", 
            lty = 1, lwd = 2)
 mtext(outer = TRUE, side = 3, "Seasonal variation-exposed to air")
 ```
@@ -948,7 +948,7 @@ lines2D(x = times/86400, y = Rad, colvar = Rad,
 
 image2D(ToutYr2, time_unit = "day",
         main = "Temperature", xlab = "days",
-        clab = "dgC", ylab = "m", 
+        clab = "degC", ylab = "m", 
         contour = TRUE, mfrow = NULL)
 
 matplot1D(ToutYr2,  
@@ -971,11 +971,10 @@ matplot0D(ToutYr2, time_unit = "day",
 
 matplot0D(ToutYr2, time_unit = "day",
            which = c("Tsed_mean", "Watertemperature"), 
-           main = "Temperature", ylab = "dg", xlab = "day",
+           main = "Temperature", ylab = "degC", xlab = "day",
            lty = 1, lwd = 2)
 mtext(outer = TRUE, side = 3, "Seasonal variation-submerged")
 ```
-
 
 ## Application 3: The Oosterschelde data
 
@@ -993,10 +992,10 @@ The parameter "nap" was derived by manually tuning the model to the data.
  
 The porosity was measured and varies from 0.54 near the surface to 0.3 at depth .
 
-The albedo of the sediment was set rather high (0.3) - default = 0.2.
+The albedo of the sediment is set rather high (0.3) - default = 0.2.
 
 ```{r}
-nap   <- 0.5   # [m] position of the sampling above NAP
+nap   <- 0.5   # [m] position of the sampling below NAP
 
 WaterHeight <- data.frame(Time   = ForcingOS$Time, 
                           height = pmax(0, ForcingOS$Waterheight + nap)) 
@@ -1034,9 +1033,18 @@ plot(OSout, mfrow = c(3, 1), which = unique(Tdata$var),
      obs = Tdata, obspar = list(pch = ".", col = "red", cex=2))
 ```
 
-```{r, fig.width=10, fig.height=12,warning = FALSE, message = FALSE}
-image2D(OSout, time.origin = "1970-01-01", mfrow = NULL, las = 1)
+```{r, fig.width=10, fig.height=12}
+Tdata <- data.frame(var   = paste("Tsed", DataOS$Depth_cm, sep="_0.0"),
+                    time  = as.double(DataOS$Time)/86400,
+                    value = DataOS$SedimentTemperature)
+plot(OSout, mfrow = c(3, 1), which = unique(Tdata$var), time_unit = "day",
+     obs = Tdata, obspar = list(pch = ".", col = "red", cex=2))
 ```
+
+```{r, fig.width=10, fig.height=12,warning = FALSE, message = FALSE}
+image2D(OSout, time_origin = "1970-01-01", mfrow = NULL, las = 1)
+```
+
 ```{r, fig.width=10, fig.height=12, warning = FALSE, message = FALSE}
 par(mfrow = c(4, 2), mar = c(4, 4, 3, 2), las = 1)
 OSday <- OSout
@@ -1044,7 +1052,7 @@ OSday[,1] <- OSout[,1]/86400 - 18261
 
 xlim <- c("2020-02-01", "2020-03-01")
 image2D(OSout, xlim = as.POSIXct(xlim), 
-        ylim = c(1, 0), time.origin = "1970-01-01", 
+        ylim = c(1, 0), time_origin = "1970-01-01", 
         xlab = "day", mfrow = NULL)
 plot(OSday, which = "Tsed_0.03", 
      xlim = as.POSIXlt(xlim)$yday, 
@@ -1052,7 +1060,7 @@ plot(OSday, which = "Tsed_0.03",
 
 xlim <- c("2020-05-01", "2020-06-01")
 image2D(OSout, xlim = as.POSIXct(xlim), 
-        ylim = c(1, 0), time.origin = "1970-01-01", 
+        ylim = c(1, 0), time_origin = "1970-01-01", 
         xlab = "day", mfrow = NULL)
 plot(OSday, which = "Tsed_0.03", 
      xlim = as.POSIXlt(xlim)$yday, 
@@ -1060,7 +1068,7 @@ plot(OSday, which = "Tsed_0.03",
 
 xlim <- c("2020-08-01", "2020-09-01")
 image2D(OSout, xlim = as.POSIXct(xlim), 
-        ylim = c(1, 0), time.origin = "1970-01-01", 
+        ylim = c(1, 0), time_origin = "1970-01-01", 
         xlab = "day", mfrow = NULL)
 plot(OSday, which = "Tsed_0.03", 
      xlim = as.POSIXlt(xlim)$yday, 
@@ -1068,7 +1076,7 @@ plot(OSday, which = "Tsed_0.03",
 
 xlim <- c("2020-11-01", "2020-12-01")
 image2D(OSout, xlim = as.POSIXct(xlim), 
-        ylim = c(1, 0), time.origin = "1970-01-01", 
+        ylim = c(1, 0), time_origin = "1970-01-01", 
         xlab = "day", mfrow = NULL)
 plot(OSday, which = "Tsed_0.03", 
      xlim = as.POSIXlt(xlim)$yday, 
@@ -1100,7 +1108,7 @@ The temperature equation, describing the temperature in the bulk sediment, $T_{b
 $$
 \frac{\partial T_{bs}}{\partial t} = \frac{1}{cp_{bs}\rho_{bs}}\frac{\partial }{\partial x}K_{bs} \frac{\partial T_{bs}}{\partial x}-\frac{1}{cp_{bs} \cdot \rho_{bs}}\frac{\partial I_x}{\partial x}
 $$
-where $K_{bs}$ is the thermal conductivity of the bulk ($W/m/dgC$), $cp_{bs}$ is the bulk specific heat capacity ($J/kg/dg$), and $\rho_{bs}$ is the bulk density ($kg/m3$).
+where $K_{bs}$ is the thermal conductivity of the bulk ($W/m/K$), $cp_{bs}$ is the bulk specific heat capacity ($J/kg/K$), and $\rho_{bs}$ is the bulk density ($kg/m3$).
 
 with boundary conditions
 

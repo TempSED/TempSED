@@ -26,8 +26,9 @@
 
 \method{image2D}{TempSEDdyn}(z, which = NULL, subset = NULL,
     time_unit = c("sec", "hour", "day", "year"), 
-    xlab = time_unit, time_origin = NULL, plotWater = FALSE,
-   colkey = list(cex.clab = 0.8, line.clab = 0.5, cex.axis = 0.8), 
+    xlab = time_unit, time_origin = NULL, 
+    plot_water = FALSE, plot_air = FALSE,
+    colkey = list(cex.clab = 0.8, line.clab = 0.5, cex.axis = 0.8), 
    \dots)
 
 matplot0D (x, ...)
@@ -51,13 +52,13 @@ matplot1D (z, ...)
   }
   \item{select, which}{ The name(s) of the 1-dimensional output to be plotted versus time.
   }
-  \item{subset}{ either a logical expression indicating elements or rows to keep, or a vector of integers denoting the indices of the rows to keep. Missing values are taken as FALSE
+  \item{subset}{ either a logical expression indicating elements or rows to keep, or a vector of integers denoting the indices of the rows to keep. Missing values are taken as FALSE.
   }
   \item{time_origin}{ When not \code{NULL}, will use time labels rather than seconds to label time. This may not work well with \code{time_unit}; (use Sys.setlocale(LC_TIME) to change how the date appears on the x-axis).
   }
   \item{time_unit}{ The time unit of the x-axis. The default is "sec" (the unit of the model).
   }
-  \item{plotWater}{ When TRUE, will also plot the properties of the overlying watercolumn (height and temperature).
+  \item{plot_water, plot_air}{ When TRUE, will also plot the properties of the overlying watercolumn (height and temperature) or overlying air.
   }
   \item{type, col, lty, xlab, ylab, las}{ parameters passed to the plot function
   }
@@ -75,8 +76,12 @@ matplot1D (z, ...)
 
 \examples{
 
+# ----------------------------------------------------
+# run the model - yearly dynamics, dry sediment
+# ----------------------------------------------------
+
 fAirTempYr    <- function(t) 
-                    return(15 + 15*sin(2*pi*t/86400/365))      # dgC
+                    return(15 + 15*sin(2*pi*t/86400/365))      # degC
 fSolarRadYr   <- function(t) 
                     return(150*(1+0.8*sin(2*pi*t/86400/365)))  # W/m2
 times         <- seq(from = 0, to = 365*86400, by = 86400)
@@ -86,8 +91,101 @@ Tout  <- TempSED_run1D(
                    times            = times, 
                    f_Airtemperature = fAirTempYr,
                    f_Solarradiation = fSolarRadYr)
-image2D(Tout)
 
+# plot results
+
+pm <- par(mfrow = c(2, 2), las = 1)
+
+image2D   (Tout, 
+           mfrow = NULL)  # mfrow = NULL to avoid resetting it
+
+plot      (Tout, 
+           which = "Tsed_mean", 
+           mfrow = NULL)
+
+matplot0D(Tout, 
+          which = c("Watertemperature", "Airtemperature", "Tsed_mean"),
+          ylab  = "degC",
+          mfrow = NULL)
+
+matplot1D(Tout, 
+          subset = times == 100*86400 | times == 200*86400, 
+          main = "T at days 100, 200",
+          col = 1:2, lwd = 2,
+          mfrow = NULL)
+legend("bottomright", legend = c(100, 200), title = "day", 
+       col = 1:2, lwd = 2)
+
+# ----------------------------------------------------
+# run the model - dayly dynamics, tidal flooding
+# ----------------------------------------------------
+
+nap   <- -0.5   # [m] position of the sediment above NAP
+
+WaterHeight <- data.frame(Time   = ForcingOS$Time, 
+                          height = pmax(0, ForcingOS$Waterheight + nap)) 
+
+x <- TempSED_getdepth()
+
+# initial temperature
+Tini_fun <- function(x) approx(InitTempOS, xout = x, rule = 2)$y
+
+times <- seq(from = as.POSIXct("2020-01-01 00:00:00") , 
+             to   = as.POSIXct("2020-01-03 00:00:00"), 
+             by   = 900)
+
+OSout <- TempSED_run1D(
+           times              = as.double(times), 
+           T_ini              = Tini_fun, 
+           f_Waterheight      = WaterHeight, 
+           f_Watertemperature = ForcingOS[, c("Time", "Watertemperature")], 
+           f_Solarradiation   = ForcingOS[, c("Time", "Solarradiation")], 
+           f_Windspeed        = ForcingOS[, c("Time", "Windspeed")], 
+           f_Airtemperature   = ForcingOS[, c("Time", "Airtemperature")], 
+           f_Cloudiness       = ForcingOS[, c("Time", "Cloudiness")]
+           )
+
+par(mfrow = c(2, 2))
+image2D(OSout, 
+        time_origin = "1970-01-01",
+        contour = TRUE,                  # easy to add contour lines
+        main    = "sediment temperature", 
+        ylim    = c(1,0), 
+        mfrow   = NULL)
+image2D(OSout, 
+        ylim = c(1, -0.1),   # will be adapted
+        plot_water = TRUE, time_origin = "1970-01-01",
+        mfrow = NULL,
+        main = "sediment and water temperature") 
+image2D(OSout, 
+        ylim = c(1, -0.1),   # will be adapted
+        plot_air = TRUE, 
+        time_unit = "day", time_origin = 18262,
+        mfrow = NULL,
+        main = "sediment and air temperature")  
+
+image2D(OSout, 
+        ylim = c(1, -0.1),   # will be adapted
+        plot_water=TRUE, plot_air = TRUE,
+        time_unit = "hour", time_origin = 18262*24,
+        mfrow = NULL) 
+
+# a little more work to add contours when plot_water or plot_air are TRUE
+
+depth <- TempSED_getdepth(OSout)        # sediment depth
+
+tt    <- OSout[,1]/3600-18262*24        # time in hours, origin subtracted
+
+Temp  <- subset(OSout, 
+                which = "Temperature")  # 2D temperature
+
+contour2D(x = tt, 
+          y = depth, 
+          z = Temp, 
+          add = TRUE, 
+          col = "black")  # to avoid color legend
+
+par(mfrow = pm)
 }
 
 \seealso{

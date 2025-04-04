@@ -1,46 +1,46 @@
 \name{air properties}
 \alias{air_properties}
-\alias{air_humidity}
 \alias{air_density}
-\alias{air_vapor}
+\alias{air_Qspec}
+\alias{air_Pvapor}
 \alias{air_tc}
 \alias{air_cp}
 \alias{air_td}
 
 \title{
-  Properties of the air relevant for sediment temperature modelling.
+  Properties of the moist air relevant for sediment temperature modelling.
 }
 \description{
-  \code{air_properties} calculates the humidity, density and vapor pressure of the air.
+  \code{air_properties} calculates the specific humidity, density and vapor pressure of the moist air.
 }
 
  
 \usage{
 air_properties (T_air = 10,  P = 101325, Qrel = 0.01)
 air_density    (T_air = 10,  P = 101325, Qrel = 0.01)
-air_humidity   (T_air = 10,  P = 101325, Qrel = 0.01)
-air_vapor      (T_air = 10,              Qrel = 0.01)
+air_Qspec      (T_air = 10,  P = 101325, Qrel = 0.01)
+air_Pvapor     (T_air = 10,              Qrel = 0.01)
 air_tc         (T_air = 10)
 air_cp         (T_air = 10)
 air_td         (T_air = 10)
 }
 \arguments{
- \item{T_air}{ The temperature of the air, one number or a vector, units [dgC].
+ \item{T_air}{ The temperature of the air, one number or a vector, units [degC].
   }
  \item{P}{ The air pressure, one number or a vector, units [Pa].
   }
- \item{Qrel}{ The relative air humidity, a fraction relative to saturated, one number or a vector, units [-]; values should be inbetween 0 and 1 (not checked).
+ \item{Qrel}{ The *relative* air humidity, ratio of the actual vapor pressure of water in the air to that in air saturated with water vapor, one number or a vector, units [-]; values should be inbetween 0 and 1 (not checked).
   }  
 }
 
 \value{
 function \code{air_properties} returns a list with:
  \itemize{
-  \item \code{humidity}, the specific humidity of the air, [kg/kg]
+  \item \code{Qspec}, the *specific* humidity of the moist air, mass of water vapor in a unit mass of moist air [kg/kg]
   \item \code{density}, the air density, [kg/m3]
-  \item \code{vapor}, the vapor pressure of air, [Pa]
-  \item \code{cp_air}, the specific heat capacity of air, [J/kg/dg]
-  \item \code{td_air}, the thermal conductivity of air,  [W/m/dg]
+  \item \code{Pvapor}, the vapor pressure of air, [Pa]
+  \item \code{cp_air}, the specific heat capacity of air, [J/kg/K]
+  \item \code{td_air}, the thermal conductivity of air,  [W/m/K]
   \item \code{tc_air}, the thermal diffusivity of air,    [m2/s]
  } 
 
@@ -78,7 +78,7 @@ attributes(air_properties())
 # ---------------------------------------------------------
 
 air_properties(T_air = 20)
-air_humidity  (T_air = 20)
+air_Qspec     (T_air = 20)
 
 # ---------------------------------------------------------
 # temperature, relative humidity, pressure sequences
@@ -96,17 +96,17 @@ air.t.seq <- air_properties(T_air = t.seq)
                
 par(mfrow = c(2,3), las = 1)
 
-plot(t.seq, air.t.seq$humidity, 
+plot(t.seq, air.t.seq$Qspec, 
      xlab = "Temp", ylab = "kg/kg", 
-     main = "air humidity")
+     main = "specific air humidity")
 
 plot(t.seq, air.t.seq$density,  
      xlab = "Temp", ylab = "kg/m3", 
      main = "air density")
 
-plot(t.seq, air.t.seq$density,  
+plot(t.seq, air.t.seq$Pvapor,  
      xlab = "Temp", ylab = "Pa", 
-     main = "air vapor")
+     main = "air vapor pressure")
 
 
 # -------
@@ -114,18 +114,18 @@ Q.seq     <- seq(from =  0, to =  1, length.out = 100)
 
 air.Q.seq <- air_properties(Qrel = Q.seq)
 
-plot(Q.seq, air.Q.seq$humidity, 
+plot(Q.seq, air.Q.seq$Qspec, 
      xlab = "rel humidity", ylab = "kg/kg", 
-     main = "air humidity")
+     main = "air specific humidity")
 
 
 plot(Q.seq, air.Q.seq$density,  
      xlab = "rel humidity", ylab = "kg/m3", 
      main = "air density")
 
-plot(Q.seq, air.Q.seq$density,  
+plot(Q.seq, air.Q.seq$Pvapor,  
      xlab = "rel humidity", ylab = "Pa", 
-     main = "air vapor")
+     main = "air vapor pressure")
 
 }
 \references{

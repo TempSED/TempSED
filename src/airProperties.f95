@@ -11,12 +11,12 @@ MODULE Heatconstants
    boltzmann = 5.67d-08,  & ! [W/m2/K^4] Stefan-Boltzmann ct
    Rd        = 287.05,    & ! [J/kg/K]   specific gas ct for dry air
    Rv        = 461.495,   & ! [J/kg/K]   specific gas ct for water vapour
-   mwr       = 0.622d0      ! [-]        mol weight water/mol weight dry air
+   mwr       = 0.622d0      ! [kg/kg]    mol weight water/mol weight dry air
 
 END MODULE Heatconstants
 
 !**************************************************************************
-! Air density, humidity, vapor pressure
+! Air density, specific humidity, vapor pressure
 !**************************************************************************
 
 SUBROUTINE airproperties(Tair, P, Qrel, Qair, RHOair, Vapor)
@@ -29,14 +29,15 @@ SUBROUTINE airproperties(Tair, P, Qrel, Qair, RHOair, Vapor)
  IMPLICIT NONE
 
  DOUBLE PRECISION, INTENT (IN) ::                                               &
-      Tair ,          &    ! [dgC]     air temperature
-      P    ,          &    ! [Pa]      air pressure,
-      Qrel                 ! [-]       relative air humidity (0-1)
+      Tair ,    &    ! [degC]    air temperature
+      P    ,    &    ! [Pa]      air pressure,
+      Qrel           ! [-]       relative air humidity, vapor pressure of water in air
+                     !             / vapor pressure in saturated air
 
  DOUBLE PRECISION, INTENT(OUT) ::                                               &
-      Qair,           &   ! [kg/kg]   specific humidity of the air
-      RhoAir,         &   ! [kg/m3]   air density
-      Vapor               ! [Pa]      vapor pressure of air
+      Qair,     &   ! [kg/kg]   specific humidity of the air
+      RhoAir,   &   ! [kg/m3]   air density
+      Vapor         ! [Pa]      vapor pressure of air
 
  DOUBLE PRECISION :: PsatAir, QsatAir
  DOUBLE PRECISION :: Pdry, TairK

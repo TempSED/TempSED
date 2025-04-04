@@ -27,7 +27,7 @@
 
 
 \author{
-  Karline Soetaert
+  Karline Soetaert (code), Lubos Polerecky (contributor), Qi Liu (contributor)
 }
 
 \references{

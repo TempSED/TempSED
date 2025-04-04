@@ -9,7 +9,7 @@
   Properties of the major sediment-constituent minerals.
 }
 \description{
-  \code{air_properties} calculates the humidity, density and vapor pressure of the air.
+  \code{mineral_properties} calculates the density, specific heat capacity, and thermal conductivity and diffusivity of the major mineral consituents of sediments relevant for sediment temperature modelling.
 }
 
  
@@ -47,8 +47,8 @@ mineral_td         (
 function \code{mineral_properties} returns a list with:
  \itemize{
   \item \code{density}, the mineral density, [kg/m3]
-  \item \code{cp}, the specific heat capacity of the mineral(s), [J/kg/dg]
-  \item \code{td}, the thermal conductivity of the mineral(s),  [W/m/dg]
+  \item \code{cp}, the specific heat capacity of the mineral(s), [J/kg/K]
+  \item \code{td}, the thermal conductivity of the mineral(s),  [W/m/K]
   \item \code{tc}, the thermal diffusivity of the mineral(s),    [m2/s]
  } 
 

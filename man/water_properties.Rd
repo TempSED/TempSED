@@ -35,7 +35,7 @@ water_lh (T_water = 20, S = 30, P = 101325)
 
 }               
 \arguments{
- \item{T_water}{ temperature of the water, one value or a vector [dgC]. 
+ \item{T_water}{ temperature of the water, one value or a vector [degC]. 
   }
  \item{S}{ salinity of the water, one value [-]. 
   }
@@ -45,7 +45,7 @@ water_lh (T_water = 20, S = 30, P = 101325)
   }
  \item{density_water}{ Water density; [kg/m3], one value, or a vector of length = length of \code{T_water}.
  }
- \item{cp_water}{ Specific heat capacity of the water ; [J/kg/dgC], one value, or a vector of length = length of \code{T_water}.
+ \item{cp_water}{ Specific heat capacity of the water ; [J/kg/K], one value, or a vector of length = length of \code{T_water}.
  }
 }
 
@@ -53,23 +53,23 @@ water_lh (T_water = 20, S = 30, P = 101325)
 function \code{water_properties} returns a list with:
  \itemize{
   \item \code{density_water}, the density of the water, [kg/m3], as many values as length of \code{T_water}.
-  \item \code{cp_water}, the specific heat capacity of the water [J/kg/dgC], length of \code{T_water}.
+  \item \code{cp_water}, the specific heat capacity of the water [J/kg/K], length of \code{T_water}.
   \item \code{td_water}, the thermal diffusivity of the water, [m2/s], length of \code{T_water}.
-  \item \code{tc_water}, the thermal conductivity of the water, [W/m/dg], length of \code{T_water}.
-  \item \code{lh_water}, the latent heat of vaporization of the water, [W/m/dg], length of \code{T_water}.
+  \item \code{tc_water}, the thermal conductivity of the water, [W/m/K], length of \code{T_water}.
+  \item \code{lh_water}, the latent heat of vaporization of the water, [W/m/K], length of \code{T_water}.
  } 
 
 function \code{water_density} returns a vector with the density of the water, 
 [kg/m3], as many values as length of \code{T_water}.
 
 function \code{water_cp} returns a vector with the specific heat capacity of the water, 
-[J/kg/dgC], as many values as length of \code{T_water}.
+[J/kg/K], as many values as length of \code{T_water}.
 
 function \code{water_td} returns a vector with the thermal diffusivity of the water, 
 [m2/s], as many values as length of \code{T_water}.
 
 function \code{water_tc} returns a vector with the thermal conductivity of the water, 
-[W/m/dg], as many values as length of \code{T_water}.
+[W/m/K], as many values as length of \code{T_water}.
 
 The object attributes contain:
 
@@ -130,19 +130,19 @@ It can be calculated by taking the thermal conductivity divided by density and s
  par (mfrow = c(2,2), las = 1)
  
  plot(t.seq, w.t$cp_water, 
-      xlab = "temperature, dgC", ylab = "J/kg/K",
+      xlab = "temperature, degC", ylab = "J/kg/K",
       main = "specific heat capacity of water") 
  
  plot(t.seq, w.t$density_water, 
-      xlab = "temperature, dgC", ylab = "kg/m3",
+      xlab = "temperature, degC", ylab = "kg/m3",
       main = "density of water")
  
  plot(t.seq, w.t$td_water, 
-      xlab = "temperature, dgC", ylab = "m2/s", 
+      xlab = "temperature, degC", ylab = "m2/s", 
       main = "thermal diffusivity of water")
  
  plot(t.seq, w.t$lh_water, 
-      xlab = "temperature, dgC", ylab = "J/kg", 
+      xlab = "temperature, degC", ylab = "J/kg", 
       main= "latent heat of vaporization")
 
 }

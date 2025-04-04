@@ -8,10 +8,10 @@ Authors@R: c(
     person(given = "Karline", family = "Soetaert", role = c("aut", "cre"),
            email = "karline.soetaert@nioz.nl", 
            comment = c(ORCID = "0000-0003-4603-7100")),
-    person(given = "Lubos", family = "Polerecky", role = "ctb",
+    person(given = "Lubos", family = "Polerecky", role = c("aut", "ctb"),
            email = "L.Polerecky@uu.nl",
            comment = c(ORCID = "0000-0003-4425-585X")),
-    person(given = "Qi", family = "Liu", role = "ctb",
+    person(given = "Qi", family = "Liu", role = c("aut","ctb"),
            email = "qi.liu@nioz.nl")
   )        
 Maintainer: Karline Soetaert <karline.soetaert@nioz.nl>
@@ -22,5 +22,3 @@ VignetteBuilder: knitr
 Description: Model describing temperature in aquatic sediments, including functions to calculate physical quantities.
 License: GPL (>=3.0)
 LazyData: yes
-NeedsCompilation: yes
-Packaged: 2025-02-24 10:25:55 UTC; karlines

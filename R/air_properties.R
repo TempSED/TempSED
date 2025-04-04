@@ -4,84 +4,85 @@
 #===============================================================================
 
 air_properties <- function(
-                     T_air   = 10,       # [dgC]     air temperature
-                     P       = 101325,   # [Pa]      air pressure,
-                     Qrel    = 0.01)     # [-]       relative air humidity (0-1)
+    T_air   = 10,       # [degC]    air temperature
+    P       = 101325,   # [Pa]      air pressure,
+    Qrel    = 0.01)     # [-]       relative air humidity (0-1)
 {
-
+  
   # Create a data.frame to ensure that all inputs have the same length
   ZZ <- data.frame(T_air, P, Qrel)
   
   # Call fortran function 
   if (nrow(ZZ) > 1){
-   
+    
     RR <- sapply(1:nrow(ZZ), 
-                FUN = function(i){
-    RES <- with(ZZ, 
-           .Fortran("airproperties", as.double(T_air[i]), as.double(P[i]), 
-                  as.double(Qrel[i]), 
-                  Qair = as.double(1.), RHO = as.double(1.), 
-                  Vapor = as.double(1)))
-     c(humidity = RES$Qair, density = RES$RHO, vapor = RES$Vapor)
-    })
-   RR <- as.data.frame(t(RR))
+                 FUN = function(i){
+                   RES <- with(ZZ, 
+                               .Fortran("airproperties", as.double(T_air[i]), as.double(P[i]), 
+                                        as.double(Qrel[i]), 
+                                        Qair = as.double(1.), 
+                                        RHO = as.double(1.), 
+                                        Pvapor = as.double(1)))
+                   c(Qspec = RES$Qair, density = RES$RHO, Pvapor = RES$Pvapor)
+                 })
+    RR <- as.data.frame(t(RR))
     
   } else {  
     
     RES <- .Fortran("airproperties", as.double(T_air), as.double(P), 
-                  as.double(Qrel), 
-                  Qair = as.double(1.), RHO = as.double(1.), Vapor = as.double(1))
-    RR <- list(humidity = RES$Qair, density = RES$RHO, vapor = RES$Vapor)
+                    as.double(Qrel), 
+                    Qair = as.double(1.), RHO = as.double(1.), Pvapor = as.double(1))
+    RR <- list(Qspec = RES$Qair, density = RES$RHO, Pvapor = RES$Pvapor)
   } 
   
   R2 <- air_thermal(T_air = ZZ$T_air)
-  R2$td = R2$tc / R2$cp/RR$density
+  R2$td_air = R2$tc / R2$cp/RR$density
   
   R2att <- attributes(R2)$description
   RR <- data.frame(RR, R2)
   
   attributes(RR)$description <- data.frame(
-    names       = c("humidity", 
+    names       = c("Qspec", 
                     "density", 
-                    "vapor", 
+                    "Pvapor", 
                     R2att$names),
     description = c("specific humidity of the air", 
                     "air density", 
-                    "vapor pressure of air", 
+                    "partial vapor pressure of air", 
                     R2att$description),
     units = c("kg/kg", "kg/m3", "Pa", 
-                   R2att$units)
+              R2att$units)
   )
   
   attributes(RR)$parameters <- data.frame(
-     names       = c("T_air", "P", "Qrel"), 
-     mean.values = c(mean(T_air), mean(P), mean(Qrel)), 
-     description = c("air temperature",  "air pressure", 
-                     "relative air humidity"),
-    units = c("dgC", "Pa", "-")
+    names       = c("T_air", "P", "Qrel"), 
+    mean.values = c(mean(T_air), mean(P), mean(Qrel)), 
+    description = c("air temperature",  "air pressure", 
+                    "relative air humidity"),
+    units = c("degC", "Pa", "-")
   )
   
   RR
   
 }
 
-air_humidity <-  function(
-    T_air   = 10,       # [dgC]     air temperature
-    P       = 101325,   # [Pa]      air pressure,
-    Qrel    = 0.01)     # [-]       relative air humidity (0-1)
+air_Qspec <-  function( # [kg/kg]   air specific humidity
+  T_air   = 10,       # [degC]    air temperature
+  P       = 101325,   # [Pa]      air pressure,
+  Qrel    = 0.01)     # [-]       relative air humidity (0-1)
 {
   AA <- air_properties(T_air = T_air, P = P, Qrel = Qrel)
-  AH <- AA$humidity
+  AH <- AA$Qspec
   attributes(AH)$description <- subset(attributes(AA)$description, 
-                                       subset = names == "humidity")
+                                       subset = names == "Qspec")
   attributes(AH)$parameters <- attributes(AA)$parameters 
   AH
 }
 
-air_density <- function(
-    T_air   = 10,       # [dgC]     air temperature
-    P       = 101325,   # [Pa]      air pressure,
-    Qrel    = 0.01)     # [-]       relative air humidity (0-1)
+air_density <- function( # [kg/m3]   air density
+  T_air   = 10,        # [degC]    air temperature
+  P       = 101325,    # [Pa]      air pressure,
+  Qrel    = 0.01)      # [-]       relative air humidity (0-1)
 {
   AA <- air_properties(T_air = T_air, P = P, Qrel = Qrel)
   AD <- AA$density
@@ -91,16 +92,16 @@ air_density <- function(
   AD
 }
 
-air_vapor <-  function(
-    T_air   = 10,       # [dgC]     air temperature
-    Qrel    = 0.01)     # [-]       relative air humidity (0-1)
+air_Pvapor <-  function( # [Pa]      air partial vapor pressure
+  T_air   = 10,        # [degC]    air temperature
+  Qrel    = 0.01)      # [-]       relative air humidity (0-1)
 {
   AA <- air_properties(T_air = T_air, P = 101325, Qrel = Qrel)
-  AV <- AA$vapor
+  AV <- AA$Pvapor
   attributes(AV)$description <- subset(attributes(AA)$description, 
-                                       subset = names == "vapor")
+                                       subset = names == "Pvapor")
   attributes(AV)$parameters <- subset(attributes(AA)$parameters, 
-                                       subset = names != "P")
+                                      subset = names != "P")
   AV
   
 }
@@ -125,15 +126,13 @@ air_thermal <- function (T_air){
     description = c("specific heat capacity of air", 
                     "thermal conductivity of air", 
                     "thermal diffusivity of air"),
-    units = c("J/kg/dg", "W/m/dg", "m2/s"))
-  attributes(RES)$parameters <- data.frame(names = "T_air", values = mean (T_air), description = "air temperature", units = "dgC") 
+    units = c("J/kg/K", "W/m/K", "m2/s"))
+  attributes(RES)$parameters <- data.frame(names = "T_air", values = mean (T_air), description = "air temperature", units = "degC") 
   RES
 }
 
-air_tc <- function(
-    T_air   = 10)       # [dgC]     air temperature
-#    P       = 101325,   # [Pa]      air pressure,
-#    Qrel    = 0.01)     # [-]       relative air humidity (0-1)
+air_tc <- function(     # conductivity, W/m/K
+  T_air   = 10)       # [degC]     air temperature
 {
   AA <- air_thermal(T_air = T_air)
   AH <- AA$tc_air
@@ -143,10 +142,8 @@ air_tc <- function(
   AH
 }
 
-air_td <- function(
-    T_air   = 10)       # [dgC]     air temperature
-  #    P       = 101325,   # [Pa]      air pressure,
-  #    Qrel    = 0.01)     # [-]       relative air humidity (0-1)
+air_td <- function(     # diffusivity, m2/s 
+  T_air   = 10)       # [degC]     air temperature
 {
   AA <- air_thermal(T_air = T_air)
   AH <- AA$td_air
@@ -156,10 +153,8 @@ air_td <- function(
   AH
 }
 
-air_cp <- function(
-    T_air   = 10)       # [dgC]     air temperature
-  #    P       = 101325,   # [Pa]      air pressure,
-  #    Qrel    = 0.01)     # [-]       relative air humidity (0-1)
+air_cp <- function(     # heat capacity, J/kg/K
+  T_air   = 10)       # [degC]     air temperature
 {
   AA <- air_thermal(T_air = T_air)
   AH <- AA$cp_air

@@ -33,8 +33,8 @@ MODULE parTemp1D
 
  DOUBLE PRECISION ::                                                            &
    fWaterHeight,      & ! [m]       height of overlying water
-   fWaterTemperature, & ! [dgC]     temperature of overlying water
-   fAirTemperature,   & ! [dgC]     temperature of the air
+   fWaterTemperature, & ! [degC]    temperature of overlying water
+   fAirTemperature,   & ! [degC]    temperature of the air
    fAirHumidity,      & ! [-]       air humidity (fraction saturation)
    fPressure,         & ! [Pa]      air pressure
    fSolarRadiation,   & ! [W/m2]    solar radiation (short wavelength)
@@ -56,10 +56,10 @@ MODULE parTemp1D
    albedoSed,         & ! [-]        part light refracted by sediment
    kdWater,           & ! [/m]       light attenuation coeff water
    kdSed,             & ! [/m]       light attenuation coeff (bulk) sediment
-   cpWat,             & ! [J/kg/dgC] specific heat capacity water (parameter)
-   cpSolid,           & ! [J/kg/dgC] specific heat capacity solid sediment
-   tcWat,             & ! [W/m/dg]   thermal conductivity of water (parameter)
-   tcSolid,           & ! [W/m/dg]   thermal conductivity of dry sed
+   cpWat,             & ! [J/kg/K]   specific heat capacity water (parameter)
+   cpSolid,           & ! [J/kg/K]   specific heat capacity solid sediment
+   tcWat,             & ! [W/m/K]    thermal conductivity of water (parameter)
+   tcSolid,           & ! [W/m/K]    thermal conductivity of dry sed
    densWat,           & ! [kg/m3]    reference seawater density (parameter)
    densSolid,         & ! [kg/m3]    sediment dry density
    stanton,           & ! [-]        transfer coeff for sensible heat
@@ -83,8 +83,8 @@ MODULE parTemp1D
 
  DOUBLE PRECISION ::                                                            &
    Heightwater,        & ! [m]       Height of overlying water
-   Twater,             & ! [dgC]     Temperature of overlying water
-   Tair,               & ! [dgC]     Temperature of the air
+   Twater,             & ! [degC]    Temperature of overlying water
+   Tair,               & ! [degC]    Temperature of the air
    Humidity,           & ! [-]       Humidity of the air (part saturation)
    P,                  & ! [Pa]      Air pressure
    Radiation,          & ! [W/m2]    Shortwave radiation
@@ -99,7 +99,7 @@ MODULE parTemp1D
    Hsensible,          & ! [W/m2]    sensible heat input (~air temperature)
    BackRadiation,      & ! [W/m2]    net longwave radiation (net backradation)
    totalIrr,           & ! [W/m2]    heat input due to irrigation
-   Tsed                  ! [dgC]     Mean bulk sediment Temperature
+   Tsed                  ! [degC]    Mean bulk sediment Temperature
 
   COMMON /outTemp1d/Twater, Heightwater, Tair, Humidity, P,                     &
 &    Radiation,  Wind, RadiationSWI, EvaporationRate, AirHeatFlux, Htotal,      &
@@ -141,9 +141,9 @@ SUBROUTINE modtemp1d (neq, t, Temperature, dTemperature, yout, ip)
   NLRused     = 3
 
 ! output variables for forcing functions
-  Twater      = fWaterTemperature   ! [dgC]
+  Twater      = fWaterTemperature   ! [degC]
   Heightwater = fWaterHeight        ! [m]
-  Tair        = fAirTemperature     ! [dgC]
+  Tair        = fAirTemperature     ! [degC]
   Humidity    = fAirHumidity        ! [-]
   P           = fPressure           ! [Pa]
   Radiation   = fSolarRadiation     ! [W/m2]
@@ -355,7 +355,7 @@ SUBROUTINE tranTmp1d (nx, TC, Tup, Tdown, BcUp, BcDown, cond, Dirr,             
 
 IMPLICIT NONE
 INTEGER, INTENT(IN)          :: nx       ! length of TC
-DOUBLE PRECISION, INTENT(IN) :: TC(nx)   ! temperature in dgC
+DOUBLE PRECISION, INTENT(IN) :: TC(nx)   ! temperature in degC
 
 ! boundary conditions (1= flux, 2=conc, 3 = 0-grad)
 INTEGER, INTENT(IN) ::  BcUp, BcDown
@@ -364,18 +364,18 @@ INTEGER, INTENT(IN) ::  BcUp, BcDown
 DOUBLE PRECISION, INTENT(IN) ::                                                 &
      Tup, Tdown,     &   ! either boundary temperature or enthalpy flux (W/m2)            
      densWater(nx),  &   ! density of seawater    
-     cond(nx+1),     &   ! Thermal conductivity, [W/m/dg]
+     cond(nx+1),     &   ! Thermal conductivity, [W/m/K]
      Dirr(nx),       &   ! irrigation rate, [\s]
      porosity(nx),   &   ! volumetric porosity [-]
      Aint(nx+1),     &   ! surface area at the box interface [m2]
-     cpBulk(nx),     &   ! specific heat capacity [J/kg/dg] of bulk material
+     cpBulk(nx),     &   ! specific heat capacity [J/kg/K] of bulk material
      densBulk(nx),   &   ! density [kg/m3] of bulk material
      dx(nx), dxint(nx+1) ! grid size, distance from mid to mid [m]
 
 ! output: fluxes and rate of change
 DOUBLE PRECISION, INTENT(OUT) ::                                                &
      HFlux(nx+1),    &   ! enthalpy flux (W/m2)   
-     dT(nx),         &   ! rate of change of temperature [dgC/s]
+     dT(nx),         &   ! rate of change of temperature [degC/s]
      irrf                ! summed irrigation
 
 ! locals
@@ -387,7 +387,7 @@ DOUBLE PRECISION :: irrigation, Amid
 ! ----------------------------------------------
 ! enthalpy Fluxes [W/m2] 
 ! Hflux = cond     * dC  /dx 
-! units: [W/m/dg] * [dg] /[m] = [W/m2]
+! units: [W/m/K] * [degC] /[m] = [W/m2]
 ! ----------------------------------------------
     
 ! internal cells
@@ -415,7 +415,7 @@ DOUBLE PRECISION :: irrigation, Amid
 
 ! ----------------------------------------------
 ! Rate of change of temperature
-! negative flux gradient /cpBulk/densBulk => [dg/s]
+! negative flux gradient /cpBulk/densBulk => [degC/s]
 ! ----------------------------------------------
 
     DO i = 1,nx

@@ -6,24 +6,24 @@
 #===============================================================================
 
 CheckWater <- function(val, name, n){
-    if (is.null(val)) stop(name, "cannot be NULL")
-    if (n == 0) stop("length cannot be 0")
-    val <- unlist(val)
-    if (length(val) == 1 & n >1) 
-      val <- rep(val, times = n)
-    else if (length(val) != n) 
-      stop ("length of ", name, " should be equal to ", n)
-    as.double(unlist(val))
+  if (is.null(val)) stop(name, "cannot be NULL")
+  if (n == 0) stop("length cannot be 0")
+  val <- unlist(val)
+  if (length(val) == 1 & n >1) 
+    val <- rep(val, times = n)
+  else if (length(val) != n) 
+    stop ("length of ", name, " should be equal to ", n)
+  as.double(unlist(val))
 }
 
 Wdesc <- function(names){
- Bd <- data.frame(
-  names       = c("density_water", "cp_water",  
-                  "td_water", "tc_water", "lh_water"),
-  description = c("density of water", "specific heat capacity of water", 
-                  "thermal diffusivity of water", "thermal conductivity of water",
-                  "latent heat of vaporization of water"),
-  units       = c("kg/m3",  "J/kg/dg",  "m2/s", "W/m/dg", "J/kg" ))
+  Bd <- data.frame(
+    names       = c("density_water", "cp_water",  
+                    "td_water", "tc_water", "lh_water"),
+    description = c("density of water", "specific heat capacity of water", 
+                    "thermal diffusivity of water", "thermal conductivity of water",
+                    "latent heat of vaporization of water"),
+    units       = c("kg/m3",  "J/kg/K",  "m2/s", "W/m/K", "J/kg" ))
   Bd[Bd$names %in% names,]
 }
 
@@ -33,7 +33,7 @@ Wpars <- function(names){
     mean.values =NA,
     description = c("water temperature", "S", "pressure", 
                     "density of water", "specific heat capacity of water"),
-    units = c("dgC", "-", "Pa", "kg/m3", "J/kg/dg"))
+    units = c("degC", "-", "Pa", "kg/m3", "J/kg/K"))
   Bp[Bp$names %in% names,]
 }
 
@@ -86,15 +86,15 @@ water_cp <- function(T_water = 20, S = 30, P = 101325){
   BB <- .Fortran("calccpwater", as.integer(nx), T_water, S, # P, 
                  cp_water=as.double(rep(1., times = nx)))
   RR <- BB[["cp_water"]]
-
-
+  
+  
   # attributes
   BP <- Wpars(c("T_water", "S", "P"))
   BP$mean.values <- c(mean(T_water), S, P)
-
+  
   attributes(RR)$description <- Wdesc("cp_water")
   attributes(RR)$parameters <- BP
-
+  
   return(RR)
 }
 
@@ -110,13 +110,13 @@ water_tc <- function(T_water = 20, S = 30, P = 101325, type = 1){
   type      <- as.integer(type)
   nx        <- length(T_water)
   T_water <- as.double(T_water)
-
+  
   S  <- CheckWater(S, "S", 1)
   P  <- CheckWater(P, "P", 1)
   
   BB <- .Fortran("calctcwater", as.integer(nx), type, 
-                            as.double(T_water), S, P, 
-                            tc_water = as.double(rep(1., times = nx)))
+                 as.double(T_water), S, P, 
+                 tc_water = as.double(rep(1., times = nx)))
   RR <- BB[["tc_water"]]
   
   
@@ -135,17 +135,17 @@ water_tc <- function(T_water = 20, S = 30, P = 101325, type = 1){
 #===============================================================================
 
 water_td <- function(T_water = 20, S = 30, P = 101325, 
-                    density_water = water_density(T_water, S, P), 
-                    cp_water      = water_cp     (T_water, S, P)) {
+                     density_water = water_density(T_water, S, P), 
+                     cp_water      = water_cp     (T_water, S, P)) {
   
   type      <- as.integer(1)
   prop      <- data.frame(tempWat = T_water, 
                           densWat = density_water, 
                           cpWat   = cp_water)
-
+  
   nx        <- nrow(prop)
   if (is.null(nx)) nx <- 1
-
+  
   S  <- CheckWater(S, "S", 1)
   P  <- CheckWater(P, "P", 1)
   

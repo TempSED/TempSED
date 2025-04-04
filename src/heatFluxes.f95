@@ -17,14 +17,14 @@ SUBROUTINE heatflux(Tair, Tsed, P, Wind, Cloud, Qrel,                           
  IMPLICIT NONE
 
  DOUBLE PRECISION, INTENT (IN) ::                                               &
-      Tair ,          &    ! [dgC]     air temperature
-      Tsed ,          &    ! [dgC]     temp sediment surface water
+      Tair ,          &    ! [degC]    air temperature
+      Tsed ,          &    ! [degC]    temp sediment surface water
       P    ,          &    ! [Pa]      air pressure,
       Wind ,          &    ! [m/s]     wind speed
       Cloud,          &    ! [-]       relative fraction cloud cover
       Qrel ,          &    ! [-]       relative air humidity (0-1)
-      emAir,          &    ! [-]       emissivity of Air
-      emSed,          &    ! [-]       emissivity of Water/sediment
+      emAir,          &    ! [-]       emissivity of air
+      emSed,          &    ! [-]       emissivity of bulk sediment
       dalton,         &    ! [-]       transfer coeff for latent heat
       stanton,        &    ! [-]       transfer coeff for sensible heat
       por                  ! [-]       volume fraction water at interface
@@ -67,7 +67,7 @@ SUBROUTINE latentheat(Tsed, P, Wind, por, Qair, RHOair, dalton,                 
  IMPLICIT NONE
 
  DOUBLE PRECISION, INTENT (IN) ::                                               &
-      Tsed ,          &   ! [dgC]     temp surface water sediment
+      Tsed ,          &   ! [degC]    temp surface water sediment
       P    ,          &   ! [Pa]      air pressure,
       Wind ,          &   ! [m/s]     wind speed
       Qair,           &   ! [kg/kg]   specific humidity of the air
@@ -116,8 +116,8 @@ SUBROUTINE sensibleheat(Tair, Tsed, Wind, Qair, RHOair, stanton,                
  IMPLICIT NONE
 
  DOUBLE PRECISION, INTENT (IN) ::                                               &
-      Tair ,          &    ! [dgC]     air temperature
-      Tsed ,          &    ! [dgC]     temp surface sediment water
+      Tair ,          &    ! [degC]    air temperature
+      Tsed ,          &    ! [degC]    temp surface sediment water
       Wind ,          &    ! [m/s]     wind speed
       Qair,           &    ! [kg/kg]   Specific humidity of the air
       stanton,        &    ! [-]       transfer coeff for sensible heat
@@ -147,11 +147,11 @@ SUBROUTINE backrad (Tair, Tsed, Cloud, Vapor, emAir, emSed, NLR, Hback)
  IMPLICIT NONE
 
  DOUBLE PRECISION, INTENT (IN) ::                                               &
-      Tair ,          &    ! [dgC]     air temperature
-      Tsed ,          &    ! [dgC]     temp surface sediment water
+      Tair ,          &    ! [degC]    air temperature
+      Tsed ,          &    ! [degC]    temp surface sediment water
       Cloud,          &    ! [-]       relative fraction cloud cover
-      emAir,          &    ! [-]       emissivity of Air
-      emSed,          &    ! [-]       emissivity of Water/sediment
+      emAir,          &    ! [-]       emissivity of air
+      emSed,          &    ! [-]       emissivity of bulk sediment
       Vapor                ! [Pa]      vapor pressure of air
  INTEGER, INTENT (IN)  :: NLR  ! how to estimate backradiation
 
