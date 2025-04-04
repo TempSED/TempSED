@@ -4,7 +4,7 @@ editor_options:
     wrap: 72
 title: TempSED, An R package to model temperature variations in aquatic sediments.
 description: >
-   TempSED** is an R-package that includes a one-dimensional mechanistic
+   TempSED is an R-package that includes a one-dimensional mechanistic
    model to describe space-time variations in temperature in aquatic
    sediments that are exposed to the air or overlying water. 
    It is designed to model temperature in sediments under variable
@@ -12,7 +12,6 @@ description: >
    (estuarine / marine) sediments. Its vertical resolution is very 
    fine near the sediment-water interface and coarsening with depth. 
 ---
-
 
 # <img src="man/figures/TempSEDlogo.png" align="center" alt="TempSED"/>
 
@@ -30,7 +29,7 @@ description: >
 <br>
 
 
-[click here to go to the website](https://TempSED.github.io/TempSED/)
+[click here to go to the website](https://github.com/TempSED/TempSED.github.io)
 
 
 ## Installation
