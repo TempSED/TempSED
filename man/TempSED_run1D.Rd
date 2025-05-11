@@ -15,6 +15,7 @@ TempSED_run1D (parms = list(), times = 1:3600, T_ini = 10,
                f_Airtemperature = 10, f_Qrel = 0.3, 
                f_Pressure = 101325,   f_Solarradiation = 100, 
                f_Windspeed = 1,       f_Cloudiness = 0.5,
+               f_Deeptemperature = NA, 
                dependency_on_T = FALSE, 
                sedpos = NULL, verbose = FALSE, dtmax = 3600)
 }
@@ -73,6 +74,10 @@ TempSED_run1D (parms = list(), times = 1:3600, T_ini = 10,
  \item{f_Cloudiness}{ The fraction of the sky covered by clouds [-], inbetween (0,1). 
  Either one value, a \code{function} that takes time as argument, or a two-columned matrix with (time, value). 
  Note that in the latter case the time (first column) should embrace the output \code{times}. See details.
+  }
+ \item{f_Deeptemperature}{ The temperature of the deep water (lower boundary), [degC]. 
+ Either one value, a \code{function} that takes time as argument, or a two-columned matrix with (time, value). 
+ Note that in the latter case the time (first column) should embrace the output \code{times}. See details. The default, \code{NA} imposes a zero-gradient boundary condition.
   }
  \item{dependency_on_T}{ if TRUE, will calculate water properties at each time step as a function of temperature (for testing)
  }

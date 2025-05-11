@@ -26,7 +26,7 @@ TempSED_run1D <- function(
     f_Solarradiation   = 100,     # [W/m2]
     f_Windspeed        = 1,       # [m/s]
     f_Cloudiness       = 0.5,     # [-] cloud cover
-    
+    f_Deeptemperature  = NA, 
     dependency_on_T = FALSE, 
     
     sedpos    = NULL,
@@ -118,8 +118,10 @@ TempSED_run1D <- function(
     if (is.function(FF))
       ff <- cbind(ftimes, FF(ftimes))
     
-    else if (length(FF) == 1)
+    else if (length(FF) == 1){
+      if (is.na(FF)) FF <- 0
       ff <- cbind(range(times), rep(FF, times=2))
+    }
     
     else if (ncol(FF) != 2)
       stop("Forcing", name,
@@ -132,6 +134,8 @@ TempSED_run1D <- function(
     return(ff)
   }
   
+  if (is.na (f_Deeptemperature)) deepBC <-  3 else deepBC <- 2
+  
   Forcings <- list(
     f_Waterheight      = getV(f_Waterheight     , "f_Waterheight"),     # [m]
     f_Watertemperature = getV(f_Watertemperature, "f_Watertemperature"),# [degC]
@@ -140,11 +144,14 @@ TempSED_run1D <- function(
     f_Pressure         = getV(f_Pressure        , "f_Pressure"),        # [Pa]
     f_Solarradiation   = getV(f_Solarradiation  , "f_Solarradiation"),  # [W/m2]
     f_Windspeed        = getV(f_Windspeed       , "f_Windspeed"),       # [m/s]
-    f_Cloudiness       = getV(f_Cloudiness      , "f_Cloudiness")       # [-]
+    f_Cloudiness       = getV(f_Cloudiness      , "f_Cloudiness"),      # [-]
+    f_Deeptemperature  = getV(f_Deeptemperature , "f_Deeptemperature")  # [degC]
   )
   
   parms <- as.double(c(PP, 
-                       dependency_on_T, 
+                       
+                       dependency_on_T, deepBC = deepBC,
+                       
                        porosity, intpor, irr, Grid$dx, Grid$dx.aux))
   
   # ----------------------

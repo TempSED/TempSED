@@ -42,7 +42,7 @@ Before installing the *TempSED* package, you need to first install the following
 Once the above packages have been installed, enter the following command in the R-console to install the *TempSED* package:
 
 ```
-devtools::install_github("dynamic-R/TempSED", depend=TRUE)
+devtools::install_github("TempSED/TempSED", depend=TRUE)
 ```
 Then, type ``require(TempSED)`` in the R-console to load the package in R. 
 

@@ -11,8 +11,8 @@
 MODULE dimTemp1D
 
  INTEGER, PARAMETER :: nx = 100                   ! number of vertical boxes
- INTEGER, PARAMETER :: npars  = 17 + 4*nx + nx+1  ! number of parameters
- INTEGER, PARAMETER :: nforcs = 8                 ! number of forcing functions
+ INTEGER, PARAMETER :: npars  = 18 + 4*nx + nx+1  ! number of parameters
+ INTEGER, PARAMETER :: nforcs = 9                 ! number of forcing functions
  INTEGER, PARAMETER :: nout   = 18                ! number of output variables
 
 END MODULE dimTemp1D
@@ -39,10 +39,12 @@ MODULE parTemp1D
    fPressure,         & ! [Pa]      air pressure
    fSolarRadiation,   & ! [W/m2]    solar radiation (short wavelength)
    fWindSpeed,        & ! [m/s]     Wind speed
-   fCloudiness          ! [-]       cloud cover
+   fCloudiness,       & ! [-]       cloud cover
+   fDeepTemperature     ! [degC]    deep water temperature
 
  COMMON /forcsTemp1d/ fWaterHeight, fWaterTemperature, fAirTemperature,         &
-&    fAirHumidity, fPressure, fSolarRadiation, fWindSpeed, fCloudiness
+&    fAirHumidity, fPressure, fSolarRadiation, fWindSpeed, fCloudiness,         &
+&    fDeepTemperature
 
 !=====================
 ! parameters
@@ -64,7 +66,9 @@ MODULE parTemp1D
    densSolid,         & ! [kg/m3]    sediment dry density
    stanton,           & ! [-]        transfer coeff for sensible heat
    dalton,            & ! [-]        transfer coeff for latent heat
+   
    dependencyT,       & ! [-]        switch for temperature dependency of all pars
+   deepBC,            & ! [-]        deep boundary condition (1=flux, 2=conc, 3=zero-grad)
 
    dx(nx),            & ! [m]        box thickness
    dxInt(nx+1),       & ! [m]        distance from mid-mid
@@ -75,7 +79,11 @@ MODULE parTemp1D
  COMMON /parsTemp1d/S, emAir, emSed, albedoWat, albedoSed,                      &
 &                  kdWater, kdSed, cpWat, cpSolid,  tcWat, tcSolid,             &
 &                  densWat, densSolid,  stanton, dalton,                        &
-&                  dependencyT, porosity, porint, Irrig, dx, dxInt
+&                  dependencyT, deepBC,                                         &
+&                  porosity, porint, Irrig, dx, dxInt
+
+ INTEGER :: BCup, BCdown   ! boundary conditions (1=flux, 2=conc, 3=0-grad)
+ INTEGER :: NLRused    ! 
 
 !=====================
 ! output variables
@@ -133,12 +141,9 @@ SUBROUTINE modtemp1d (neq, t, Temperature, dTemperature, yout, ip)
 
  DOUBLE PRECISION :: Cloud, Fluxup, Tup, Tdown, RadTop, RadBot 
 
- INTEGER :: NLRused, irrigate(neq)
- INTEGER :: BCup, BCdown   ! boundary conditions (1=flux, 2=conc, 3=0-grad)
+ INTEGER :: irrigate(neq)
 
 !..........................................................................
-
-  NLRused     = 3
 
 ! output variables for forcing functions
   Twater      = fWaterTemperature   ! [degC]
@@ -149,6 +154,7 @@ SUBROUTINE modtemp1d (neq, t, Temperature, dTemperature, yout, ip)
   Radiation   = fSolarRadiation     ! [W/m2]
   Wind        = fWindSpeed          ! [m/s]
   Cloud       = fCloudiness         ! [-]
+  Tdown       = fDeepTemperature    ! only used when BCdown = 2
 
 ! ==================================
 ! bulk properties
@@ -175,14 +181,11 @@ SUBROUTINE modtemp1d (neq, t, Temperature, dTemperature, yout, ip)
 ! transport and surface exchange
 ! ==================================
 
-  BcDown    = 3     ! lower boundary condition: zero gradient 
-  Tdown     = 15.d0 ! will not be used, but required in subroutine
 
   IF (Heightwater > 0) THEN           
 
 ! ***  submerged => exchange with overlying water    ***
 
-    ! set boundary conditions
     BcUp   = 2      ! upper boundary condition: imposed value
   	Tup    = Twater ! value of upper boundary temperature
 
@@ -321,6 +324,10 @@ IMPLICIT NONE
 &                 densBulk, cpBulk, tcBulk)
   END IF
 
+  ! set boundary conditions
+  BcDown    = INT(deepBC + 0.1) ! lower boundary condition: zero gradient/imposed 
+  NLRused   = 3
+
 END SUBROUTINE InitialiseBulk
 
 ! =============================================================================
@@ -396,10 +403,12 @@ DOUBLE PRECISION :: irrigation, Amid
     END DO
 
 ! upstream boundary
-    IF (BcUp .EQ. 1) THEN
+    IF (BcUp .EQ. 1) THEN        ! flux
       HFlux(1) = Tup
-    ELSE IF (BcUp .EQ. 2) THEN
+      
+    ELSE IF (BcUp .EQ. 2) THEN   ! conc
       HFlux(1) = -cond(1) * (TC(1)-Tup) /dxint(1)
+      
     ELSE
       HFlux(1) = 0.D0
     END IF
@@ -407,8 +416,10 @@ DOUBLE PRECISION :: irrigation, Amid
 ! downstream boundary
     IF (BcDown .EQ. 1) THEN
       HFlux(nx+1) = Tdown
+      
     ELSE IF (BcDown .EQ. 2) THEN
       HFlux(nx+1) = -cond(nx+1) * (Tdown-TC(nx)) /dxint(nx+1)
+      
     ELSE
       HFlux(nx+1) = 0.D0
     END IF
