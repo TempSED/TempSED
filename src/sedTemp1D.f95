@@ -13,7 +13,7 @@ MODULE dimTemp1D
  INTEGER, PARAMETER :: nx = 100                   ! number of vertical boxes
  INTEGER, PARAMETER :: npars  = 18 + 4*nx + nx+1  ! number of parameters
  INTEGER, PARAMETER :: nforcs = 9                 ! number of forcing functions
- INTEGER, PARAMETER :: nout   = 18                ! number of output variables
+ INTEGER, PARAMETER :: nout   = 19                ! number of output variables
 
 END MODULE dimTemp1D
 
@@ -106,13 +106,14 @@ MODULE parTemp1D
    Hlatent,            & ! [W/m2]    latent heat input (~evaporation)
    Hsensible,          & ! [W/m2]    sensible heat input (~air temperature)
    BackRadiation,      & ! [W/m2]    net longwave radiation (net backradation)
+   Hdeep,              & ! [W/m2]    heat flux at lower boundary
    totalIrr,           & ! [W/m2]    heat input due to irrigation
    Tsed                  ! [degC]    Mean bulk sediment Temperature
 
   COMMON /outTemp1d/Twater, Heightwater, Tair, Humidity, P,                     &
 &    Radiation,  Wind, RadiationSWI, EvaporationRate, AirHeatFlux, Htotal,      &
 &    HconvectionWater, Hradiation, Hlatent, Hsensible, BackRadiation,           &
-&    TotalIrr, Tsed 
+&    Hdeep, TotalIrr, Tsed 
 
   DOUBLE PRECISION :: densWater(nx), cpWater(nx)  ! box center
   DOUBLE PRECISION :: tcWater(nx+1)   ! thermal conductivity, at interface
@@ -194,7 +195,7 @@ SUBROUTINE modtemp1d (neq, t, Temperature, dTemperature, yout, ip)
     CALL TranTmp1d(nx, Temperature, Tup, Tdown, BcUp, BcDown, tcBulk,           &
 &                  irrig, dx, dxInt, porosity, Aint, cpBulk, densbulk,          &
 &                  densWater, HFlux, dTemperature, totalIrr)
-
+    Hdeep            = HFlux(nx+1)
     HconvectionWater = HFlux(1)      ! W/m2
 
     ! No exchange with air
@@ -217,7 +218,7 @@ SUBROUTINE modtemp1d (neq, t, Temperature, dTemperature, yout, ip)
           emAir, emSed, dalton, stanton, porosity(1),                           &
           3, EvaporationRate, Hlatent, Hsensible, BackRadiation)
 
-    ! No exchange with water
+     ! No exchange with water
     HconvectionWater = 0.d0
 
     ! Light at sediment-air interface
@@ -234,6 +235,7 @@ SUBROUTINE modtemp1d (neq, t, Temperature, dTemperature, yout, ip)
     CALL TranTmp1d(nx, Temperature, Fluxup, Tdown, BcUp, BcDown, tcBulk,        &
 &                  irrig, dx, dxInt, porosity, Aint, cpBulk, densbulk,          &
 &                  densWater, HFlux, dTemperature, totalIrr)
+    Hdeep    = HFlux(nx+1)
 
   END IF
 

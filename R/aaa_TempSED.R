@@ -85,8 +85,8 @@
   "Windspeed", "RadiationSWI", "Evaporationrate", "Heatflux_air",
   "Heatflux_total", "Heatflux_convection", 
   "Heatflux_radiation", "Heatflux_latent",
-  "Heatflux_sensible", "Heatflux_backrad",   "Total_irrigation",
-  "Tsed_mean" )
+  "Heatflux_sensible", "Heatflux_backrad", "Heatflux_deep", 
+  "Total_irrigation", "Tsed_mean" )
 
 
 .TMPSED$out0D_units <- c(
@@ -106,8 +106,10 @@
   Heatflux_latent     = "W/m2",
   Heatflux_sensible   = "W/m2", 
   Heatflux_backrad    = "W/m2", 
+  Heatflux_deep       = "W/m2",
   Total_irrigation    = "m3.dgC/s",
   Tsed_mean           = "degC")
+
 .TMPSED$out0D_description <- c( 
   Watertemperature    = "Temperature of overlying water",
   Waterheight         = "Height of overlying water",
@@ -125,6 +127,7 @@
   Heatflux_latent     = "latent heat input (~evaporation)",
   Heatflux_sensible   = "sensible heat input (~air temperature)",
   Heatflux_backrad    = "net longwave radiation (net backradation)",
+  Heatflux_deep       = "Deep heat flux out of the domain (lower boundary)",
   Total_irrigation    = "temperature input due to irrigation",
   Tsed_mean           = "Mean sediment temperature (depth-averaged")
 
