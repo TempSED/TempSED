@@ -9,17 +9,17 @@
 # Heat flux between sediment (or water) and air
 #===============================================================================
 
-flux_heat <- function(T_air = 10,          # [degC]    air temperature
-                      T_sed    = 11,       # [degC]    temp sediment 
-                      P       = 101325,    # [Pa]      air pressure,
-                      Wind    = 0,         # [m/s]     wind speed
+flux_heat <- function(T_air      = 10,     # [degC]    air temperature
+                      T_sed      = 11,     # [degC]    temp sediment 
+                      P          = 101325, # [Pa]      air pressure,
+                      Wind       = 0,      # [m/s]     wind speed
                       Cloudiness = 0.5,    # [-]       relative fraction cloud cover
                       Qrel       = 0.01,   # [-]       relative air humidity (0-1)
                       em_air     = 0.8,    # [-]       emissivity of air
                       em_sed     = 0.95,   # [-]       emissivity of bulk sediment
                       stanton    = 0.001,  # [-]       transfer coeff for sensible heat
                       dalton     = 0.0014, # [-]       transfer coeff for latent heat
-                      por0       = 1,        # [-]       volume fraction water at SWI interface
+                      por0       = 1,      # [-]       volume fraction water at SWI interface
                       NLR = c("basic", "may86", "josey97", "bunker76", "bignami95"))                               
 {
   NLRvals <- c("basic", "may86", "josey97", "bunker76", "bignami95") 
@@ -291,4 +291,3 @@ flux_backradiation <- function (
   RR
   
 }
-

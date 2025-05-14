@@ -13,6 +13,7 @@ export(TempSED_run1D)
 export(TempSED_getparms, TempSED_get0Dvars, TempSED_get1Dvars) 
 export(TempSED_getdepth, TempSED_getdx, TempSED_getgrid)
 export(TempSED_getirr, TempSED_getpor, TempSED_getstates)
+export(TempSED_budget)
 
 export(trunc_function )
 export(flux_evaporation)
